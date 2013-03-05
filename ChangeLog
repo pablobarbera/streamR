@@ -1,0 +1,5 @@
+2013-01-19 - version 0.1:
+   - Initial release
+2013-03-04 - version 0.2:
+   - Added URLEncode for non-ascii track strings
+   - Fixed parseTweets function to allow new coordinates structure in API 1.1
