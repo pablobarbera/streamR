@@ -133,7 +133,7 @@ userStream <- function(file.name, with="user", replies=NULL, track=NULL, locatio
 	}   	
 
 	url <- "https://userstream.twitter.com/1.1/user.json"
-	output <- tryCatch(oauth$OAuthRequest(URL=url, params=list(), method="GET",
+	output <- tryCatch(oauth$OAuthRequest(URL=url, params=params, method="GET",
 		cainfo=system.file("CurlSSL", "cacert.pem", package = "RCurl"), 
 		writefunction = write.tweets, timeout = timeout), error=function(e) e)
 	close(conn)
