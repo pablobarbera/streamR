@@ -148,7 +148,7 @@ filterStream <- function(file.name=NULL, track=NULL, follow=NULL, locations=NULL
     	stop("No filter parameter was specified. At least one is necessary. 
     		See ?filterStream for more information about this error.")
    } 
-   if (all(is.null(c(track,follow,language,locations))) & !is.null(language)){
+   if (all(is.null(c(track,follow,locations))) & !is.null(language)){
    		stop("Language parameter can only be used in combination with other filter parameters.")
    }
    if ((missing(file.name)||is.character(file.name)==FALSE) & is.null(ns)){
