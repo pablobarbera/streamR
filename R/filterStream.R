@@ -9,7 +9,7 @@
 #' \code{filterStream} opens a connection to Twitter's Streaming API
 #' that will return public statuses that match one or more filter predicates.
 #' Tweets can be filtered by keywords, users, and location. The output can be
-#' saved as an object in memory or written to a text file.
+#' saved as an object in memory, written to a text file or stored in MongoDB
 #'
 #' @details
 #' \code{filterStream} provides access to the statuses/filter Twitter stream.
@@ -33,12 +33,16 @@
 #' which is loaded in memory as a string vector when the connection to the stream
 #' is closed.
 #'
+#' To store tweets in MongoDB, it is necessary to install the MongoDB server in a local
+#' or remote machine. See here for instructions: \url{http://docs.mongodb.org/manual/installation/}
+#'
 #' @author
 #' Pablo Barbera \email{pablo.barbera@@nyu.edu}
 #' @seealso \code{\link{sampleStream}}, \code{\link{userStream}}, \code{\link{parseTweets}}
 #'
 #' @param file.name string, name of the file where tweets will be written. 
 #' "" indicates output to the console, which can be redirected to an R object (see examples).
+#' If the file already exists, tweets will be appended (not overwritten).
 #'
 #' @param track string or string vector containing keywords to track.
 #' See the \code{track} parameter information in the Streaming API documentation for details:
@@ -53,42 +57,41 @@
 #' coming first) specifying sets of bounding boxes to filter public statuses by. 
 #' See the \code{locations} parameter information in the Streaming API documentation for details:
 #' \url{http://dev.twitter.com/docs/streaming-apis/parameters#locations}
+#'
+#' @param language string or string vector containing a list of BCP 47 language identifiers.
+#' If not \code{NULL} (default), function will only return tweets that have been detected
+#' as being written in the specified languages. Note that this parameter can only be used
+#' in combination with any of the other filter parameters. See documentation for details:
+#' \url{https://dev.twitter.com/docs/streaming-apis/parameters#language}
 #' 
 #' @param timeout numeric, maximum length of time (in seconds) of connection to stream.
-#' The connection will be automatically closed after this period. Default is 10800 (3 hours).
+#' The connection will be automatically closed after this period. For example, setting
+#' \code{timeout} to 10800 will keep the connection open for 3 hours. The default is 0,
+#' which will keep the connection open permanently.
 #'
-#' @param user string containing the screen name of the Twitter 
-#' account that will be used for authentication.
-#'
-#' @param password string containing the password of the Twitter
-#' account that will be used for authentication. Note that this password will be visible
-#' to anyone with access to the console. Authentication using OAuth is recommended, and
-#' will be the only authentication method allowed once version 1 of the Twitter API is
-#' deprecated.
+#' @param tweets numeric, maximum number of tweets to be collected when function is called.
+#' After that number of tweets have been captured, function will stop. If set to \code{NULL}
+#' (default), the connection will be open for the number of seconds specified in \code{timeout}
+#' parameter.
 #'
 #' @param oauth an object of class \code{oauth} that contains the access tokens
-#' to the user's twitter session. This is the recommended method for authentication. 
+#' to the user's twitter session. This is currently the only method for authentication. 
 #' See examples for more details.
+#'
+#' @param ns string, namespace of the collection to which tweets will be added. Generally,
+#' it will be of the form "database.collection". If the database or the collection do not exist,
+#' they will be automatically created; if they exist, tweets will be appended.
+#'
+#' @param host string host/port where mongo database is hosted. Default is localhost (127.0.0.1).
+#'
+#' @param username string, username to be used for authentication purposes with MongoDB.
+#' 
+#' @param password string, password corresponding to the given username.
 #'
 #' @param verbose logical, default is \code{TRUE}, which generates some output to the
 #' R console with information about the capturing process.
 #'
 #' @examples \dontrun{
-#' ## capture tweets mentioning the "Rstats" hashtag
-#'   filterStream( file="tweets_rstats.json", 
-#'      track="rstats", timeout=3600, user=FOO, password=BAR )
-#'
-#' ## capture tweets published by Twitter's official account      
-#'   filterStream( file="tweets_twitter.json", 
-#'      follow="783214", timeout=600, user=FOO, password=BAR )
-#'
-#' ## capture tweets sent from New York City and saving as an object in memory
-#'   tweets <- filterStream( file="", 
-#'       locations=c(-74,40,-73,41), timeout=600, user=FOO, password=BAR )  
-#'
-#' ## capture tweets mentioning the "rstats" hashtag or sent from New York City
-#'   filterStream( file="tweets_rstats.json", track="rstats",
-#'       locations=c(-74,40,-73,41), timeout=600, user=FOO, password=BAR )
 #'  
 #' ## An example of an authenticated request using the ROAuth package, 
 #' ## where consumerkey and consumer secret are fictitious. 
@@ -105,20 +108,50 @@
 #'   my_oauth$handshake(cainfo = system.file("CurlSSL", "cacert.pem", package = "RCurl"))
 #'   filterStream( file="tweets_rstats.json",
 #'	   track="rstats", timeout=3600, oauth=my_oauth )
+#'
+#' ## capture 10 tweets mentioning the "Rstats" hashtag
+#'   filterStream( file.name="tweets_rstats.json", 
+#'      track="rstats", tweets=10, oauth=my_oauth )
+#'
+#' ## capture tweets published by Twitter's official account      
+#'   filterStream( file.name="tweets_twitter.json", 
+#'      follow="783214", timeout=600, oauth=my_oauth )
+#'
+#' ## capture tweets sent from New York City in Spanish only, and saving as an object in memory
+#'   tweets <- filterStream( file.name="", language="es",
+#'       locations=c(-74,40,-73,41), timeout=600, oauth=my_oauth )  
+#'
+#' ## capture tweets mentioning the "rstats" hashtag or sent from New York City
+#'   filterStream( file="tweets_rstats.json", track="rstats",
+#'       locations=c(-74,40,-73,41), timeout=600, oauth=my_oauth )
+#'
+#' ## capture 100 tweets sent from New York City and storing in MongoDB, in collection
+#' ## 'nyc' of database 'tweets'
+#'   tweets <- filterStream( ns="tweets.nyc", 
+#'       locations=c(-74,40,-73,41), tweets=100, oauth=my_oauth ) 
+#'
+#' ## same as above, but also storing tweets in disk
+#'   tweets <- filterStream( file.name="tweets_nyc.json", ns="tweets.nyc", 
+#'       locations=c(-74,40,-73,41), tweets=100, oauth=my_oauth ) 
 #' }
 #'
 
-filterStream <- function(file.name, track=NULL, follow=NULL, locations=NULL, 
-	timeout=10800, user=NULL, password=NULL, oauth=NULL, verbose=TRUE)
+filterStream <- function(file.name=NULL, track=NULL, follow=NULL, locations=NULL, language=NULL, 
+	timeout=0, tweets=NULL, oauth, ns=NULL, host='localhost', username="", password="", verbose=TRUE)
 {
-	require(RCurl)
+	if (!is.null(ns)){require(rmongodb)}
+	require(ROAuth)
+	open.in.memory <- FALSE
    
-   # checking user input is correct
-   if (all(is.null(c(track,follow,locations)))) {
+  	# checking user input is correct
+   if (all(is.null(c(track,follow,language,locations)))) {
     	stop("No filter parameter was specified. At least one is necessary. 
     		See ?filterStream for more information about this error.")
    } 
-   if (missing(file.name)||is.character(file.name)==FALSE){
+   if (all(is.null(c(track,follow,language,locations))) & !is.null(language)){
+   		stop("Language parameter can only be used in combination with other filter parameters.")
+   }
+   if ((missing(file.name)||is.character(file.name)==FALSE) & is.null(ns)){
    	stop("The file where the tweets will be stored was not named properly.")
    }
    if (timeout<0||is.numeric(timeout)==FALSE||length(timeout)>1){
@@ -127,58 +160,148 @@ filterStream <- function(file.name, track=NULL, follow=NULL, locations=NULL,
 
    # authentication
    if (is.null(oauth)) {
-   	if (is.null(user)||is.null(password)) { stop("No authentication method was provided. 
-   		Please enter your user name and password or use OAuth.") }
-   	userpwd <- paste(c(user, password), collapse=":")     
-   }
+    stop("No authentication method was provided. 
+   		Please use an OAuth token.") }
    if (!is.null(oauth)){
-   	require("ROAuth")
-   	if (!inherits(oauth, "OAuth"))
-    		stop("oauth argument must be of class OAuth")
-  		if (!oauth$handshakeComplete)
-    		stop("Oauth needs to complete its handshake. See ?filterStream.")
+   	if (!inherits(oauth, "OAuth")) {
+   			stop("oauth argument must be of class OAuth") }
+  		if (!oauth$handshakeComplete) {
+    		stop("Oauth needs to complete its handshake. See ?filterStream.") }
    }
 
  	# building parameter lists
- 	params <- buildArgList(track, follow, locations, oauth=oauth)
+ 	params <- buildArgList(track, follow, language, locations, oauth=oauth)
 
-	# write the JSON tweets from the Twitter Streaming API to a text file
-	# opening connection to file (temporary file if not specified)
-	if (verbose==TRUE) message("Capturing tweets...")
-	open.in.memory <- FALSE
-	if (nchar(file.name)==0) {
-		open.in.memory <- TRUE
-		file.name <- tempfile()
-	}
-	conn <- file(description=file.name, open="a")
-	write.tweets <- function(x){
-	# writes output of stream to a file
-		if (nchar(x)>0) {
-			writeLines(x, conn, sep="")
+ 	# WRITING FUNCTIONS:
+
+ 	if (is.null(file.name) & is.null(ns)){
+ 		stop("Error: file.name and ns parameters are empty")
+ 	}
+
+ 	## tweet counter
+ 	i <- 0
+
+ 	## write the JSON tweets from Streaming API to a mongoDB collection
+ 	if (is.null(file.name) & !is.null(ns)){
+ 		db <- strsplit(ns, "\\.")[[1]][1]
+ 		coll <- strsplit(ns, "\\.")[[1]][2]
+ 		if (verbose==TRUE) { message("Storing tweets in collection '", 
+ 			coll, "' of database '", db, "' in MongoDB") }
+		mongo <- mongo.create(host=host, username=username, password=password, db=db)
+		if (mongo.get.err(mongo)!=0){ stop("Error in connection to MongoDB") }
+		# function that will insert tweets into db
+		write.tweets <- function(x){
+			if (nchar(x)>0){
+				i <<- i + 1
+				json.list <- fromJSON(x)
+				fields <- names(json.list)
+				if ('text' %in% fields){
+					names(json.list)[fields=="id_str"] <- "_id"
+					mongo.insert(mongo=mongo, ns=ns, json.list)
+				}	
+			}	
+		} 
+		if (!is.null(tweets) && is.numeric(tweets) && tweets>0){
+			write.tweets <- function(x){
+				if (i>=tweets){break}
+				if (nchar(x)>0){
+					i <<- i + 1
+					json.list <- fromJSON(x)
+					fields <- names(json.list)
+					if ('text' %in% fields){
+						names(json.list)[fields=="id_str"] <- "_id"
+						mongo.insert(mongo=mongo, ns=ns, json.list)
+					}	
+				}	
+			}
 		}
-	}   	
+ 	}
 
-	if (is.null(oauth)){
-		output <- tryCatch(getURL("https://stream.twitter.com/1/statuses/filter.json",
-		   userpwd=userpwd,  write = write.tweets,  postfields = params,   
-		   cainfo = system.file("CurlSSL", "cacert.pem", package = "RCurl"),
-		 	.opts = list(verbose = FALSE, timeout=timeout)),
-		     	error=function(e) e)
-		close(conn)  
-	}
-	if (!is.null(oauth)){
-		url <- "https://stream.twitter.com/1.1/statuses/filter.json"
-		output <- tryCatch(oauth$OAuthRequest(URL=url, params=params, method="POST", 
-			customHeader=NULL, timeout = timeout, writefunction = write.tweets, 
-			cainfo=system.file("CurlSSL", "cacert.pem", package = "RCurl")), 
-				error=function(e) e)
-		close(conn)
-	}
+ 	## write the JSON tweets from Streaming API to a text file
+ 	if (!is.null(file.name) & is.null(ns)){
+ 		if (verbose==TRUE) message("Capturing tweets...")
+		if (nchar(file.name)==0) {
+			open.in.memory <- TRUE
+			file.name <- tempfile()
+		}
+		conn <- file(description=file.name, open="a")
+		write.tweets <- function(x){
+			# writes output of stream to a file
+			if (nchar(x)>0) {
+				i <<- i + 1
+				writeLines(x, conn, sep="")
+			}
+		} 
+		if (!is.null(tweets) && is.numeric(tweets) && tweets>0){	
+			write.tweets <- function(x){	
+				if (i>=tweets){break}	
+				# writes output of stream to a file	
+				if (nchar(x)>0) {	
+					i <<- i + 1	
+					writeLines(x, conn, sep="")	
+				}	
+			}
+		}  
+ 	}
+
+
+
+ 	## write the JSON tweets from Streaming API to a text file AND a mongo db
+ 	if (!is.null(file.name) & !is.null(ns)){
+ 		if (nchar(file.name)==0){ 
+ 			stop("The file where the tweets will be stored was not named properly.") }
+ 		db <- strsplit(ns, "\\.")[[1]][1]
+ 		coll <- strsplit(ns, "\\.")[[1]][2]
+ 		if (verbose==TRUE) { message("Storing tweets in collection '", 
+ 			coll, "' of database '", db, "' in MongoDB and in file '", file.name, "'") }
+		mongo <- mongo.create(host=host, username=username, password=password, db=db)
+		if (mongo.get.err(mongo)!=0){ stop("Error in connection to MongoDB") }
+		conn <- file(description=file.name, open="a")
+		# function that will insert tweets into db
+		write.tweets <- function(x){
+			if (nchar(x)>0){
+				i <<- i + 1
+				writeLines(x, conn, sep="")
+				json.list <- fromJSON(x)
+				fields <- names(json.list)
+				if ('text' %in% fields){
+					names(json.list)[fields=="id_str"] <- "_id"
+					mongo.insert(mongo=mongo, ns=ns, json.list)
+				}	
+			}	
+		} 
+		
+		if (!is.null(tweets) && is.numeric(tweets) && tweets>0){	
+			write.tweets <- function(x){
+				if (i>=tweets){break}
+				if (nchar(x)>0){
+					i <<- i + 1
+					writeLines(x, conn, sep="")
+					json.list <- fromJSON(x)
+					fields <- names(json.list)
+					if ('text' %in% fields){
+						names(json.list)[fields=="id_str"] <- "_id"
+						mongo.insert(mongo=mongo, ns=ns, json.list)
+					}	
+				}	
+			}
+		}
+ 	}
+
+ 	init <- Sys.time()
+ 	# connecting to Streaming API
+	url <- "https://stream.twitter.com/1.1/statuses/filter.json"
+	output <- tryCatch(oauth$OAuthRequest(URL=url, params=params, method="POST", 
+		customHeader=NULL, timeout = timeout, writefunction = write.tweets, 
+		cainfo=system.file("CurlSSL", "cacert.pem", package = "RCurl")), 
+			error=function(e) e)
+
+	# housekeeping...
+	if (!is.null(ns)){mongo.disconnect(mongo)}	
+	if (!is.null(file.name)){ close(conn) }
+
 	# information messages
-	seconds <- gsub(".*after (.*) milliseconds.*", "\\1", output$message)
-	seconds <- round(as.numeric(seconds)/1000, 0)
-	kb.received <- gsub(".*with (.*) bytes.*", "\\1", output$message)
-	kb.received <- round(as.numeric(kb.received)/1024, 0) 
+	seconds <- round(as.numeric(difftime(Sys.time(), init, units="secs")),0)
 
 	# if tweets were saved in temporary file, it now opens it in memory
 	if (open.in.memory==TRUE){
@@ -190,7 +313,7 @@ filterStream <- function(file.name, track=NULL, follow=NULL, locations=NULL,
 	}
 	if (open.in.memory==FALSE) {
 		if (verbose==TRUE) {message("Connection to Twitter stream was closed after ", seconds,
-			" seconds with ", kb.received, " kB received.")}	
+			" seconds with ", i, " tweets downloaded.")}	
 	}
 }
 
@@ -200,39 +323,15 @@ format.param <- function(param.name, param){
 	param.field <- paste(param.name, "=", param, sep="")
 }
 
-buildArgList <- function(track=NULL, follow=NULL, locations=NULL, with=NULL,
-	replies=NULL, oauth=NULL){
-	if (is.null(oauth)){
-		params <- c()
-		if (!is.null(track)){
-			params <- c(params, format.param("track", sapply(track, URLencode)))
-		}
-		if (!is.null(follow)){
-			params <- c(params, format.param("follow", follow))
-		}
-		if (!is.null(locations)){
-			params <- c(params, format.param("locations", locations))
-		}
-		if (!is.null(with)){
-			params <- c(params, format.param("with", with))
-		}
-		if (!is.null(replies)){
-			params <- c(params, format.param("replies", replies))
-		}
-
-		# putting it all together
-		if (length(params)>1) params <- paste(params, collapse="&")
-	}	
-	if (!is.null(oauth)){
-		params <- list()
-		if (!is.null(track)) params[["track"]] <- paste(track, collapse=",")
-		if (!is.null(follow)) params[["follow"]] <- paste(as.character(follow), collapse=",")
-		if (!is.null(locations)) params[["locations"]] <- paste(as.character(locations), collapse=",")
-		if (!is.null(with)) params[["with"]] <- paste(as.character(with), collapse=",")
-		if (!is.null(replies)) params[["replies"]] <- paste(as.character(replies), collapse=",")
-	}
+buildArgList <- function(track=NULL, follow=NULL, language=NULL, locations=NULL, 
+	with=NULL,replies=NULL, oauth=NULL)
+{
+	params <- list()
+	if (!is.null(track)) params[["track"]] <- paste(track, collapse=",")
+	if (!is.null(follow)) params[["follow"]] <- paste(as.character(follow), collapse=",")
+	if (!is.null(locations)) params[["locations"]] <- paste(as.character(locations), collapse=",")
+	if (!is.null(language)) params[["language"]] <- paste(as.character(language), collapse=",")
+	if (!is.null(with)) params[["with"]] <- paste(as.character(with), collapse=",")
+	if (!is.null(replies)) params[["replies"]] <- paste(as.character(replies), collapse=",")
 	return(params)
 }
-
-
-

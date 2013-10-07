@@ -18,8 +18,9 @@
   been parsed.}
 }
 \description{
-  This function parses tweets downloaded using the
-  \code{filterStream} function and returns a data frame.
+  This function parses tweets downloaded using
+  \code{filterStream}, \code{sampleStream} or
+  \code{userStream} and returns a data frame.
 }
 \details{
   \code{parseTweets} parses tweets downloaded using the
@@ -33,6 +34,11 @@
   than the number of lines in the file or object that
   contains the tweets because blank lines, deletion
   notices, and incomplete tweets are ignored.
+
+  To parse json to a twitter list, see
+  \code{\link{readTweets}}. That function can be
+  significantly faster for large files, when only a few
+  fields are required.
 }
 \examples{
 ## The dataset example_tweets contains 10 public statuses published

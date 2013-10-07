@@ -5,14 +5,15 @@
 #' Converts tweets in JSON format to data frame.
 #'
 #' @description
-#' This function parses tweets downloaded using the \code{filterStream} function
-#' and returns a data frame.
+#' This function parses tweets downloaded using \code{filterStream}, 
+#' \code{sampleStream} or \code{userStream} and returns a data frame.
 #'
 #' @author
 #' Pablo Barbera \email{pablo.barbera@@nyu.edu}
 #'
 #' @param tweets A character string naming the file where tweets are stored or the
 #' name of the object in memory where the tweets were saved as strings.
+#'
 #' @param simplify If \code{TRUE} it will return a data frame with only tweet and user
 #' fields (i.e., no geographic information or url entities).
 #'
@@ -28,6 +29,9 @@
 #' The total number of tweets that are parsed might be lower than the number of lines
 #' in the file or object that contains the tweets because blank lines, deletion notices,
 #' and incomplete tweets are ignored.
+#'
+#' To parse json to a twitter list, see \code{\link{readTweets}}. That function can be significantly
+#' faster for large files, when only a few fields are required.
 #'
 #' @seealso \code{\link{filterStream}}, \code{\link{sampleStream}}, \code{\link{userStream}}
 #'
@@ -64,57 +68,68 @@
 #'
 
 parseTweets <- function(tweets, simplify=FALSE, verbose=TRUE){
-    require(rjson)
-    ## checking input is correct
-    if (is.null(tweets)){
-        stop("Error: you need to specify file or object where tweets text was stored.")
-    }
-
-    ## Read the text file and save it in memory as a list           
-    if (length(tweets)==1 && file.exists(tweets)){
-        lines <- readLines(tweets, encoding="UTF-8")
-    }       
-    else {
-        lines <- tweets
-    }
-
-    results.list <- lapply(lines[nchar(lines)>0], function(x) tryCatch(fromJSON(x), error=function(e) e))
-
-    ## removing lines that do not contain tweets or were not properly parsed
-    errors <- which(unlist(lapply(results.list, length))<18)
-    if (length(errors)>0){
-        results.list <- results.list[-errors]
-    }
-              
-    # Variables of interest, for each tweet and user
-    tweet.vars <- c("text", "retweet_count", "favorited", "truncated", "id_str", 
-        "in_reply_to_screen_name", "source", "retweeted", "created_at", 
-        "in_reply_to_status_id_str", "in_reply_to_user_id_str")
-    user.vars <- c("listed_count", "verified", "location", "id_str", "description", "geo_enabled", 
-        "created_at", "statuses_count", "followers_count", "favourites_count", "protected", "url", 
-        "name", "time_zone", "id", "lang", "utc_offset", "friends_count", "screen_name")
-    place.vars <- c("country_code", "country", "place_type", "full_name", "name", "id") 
     
+    ## from json to list
+    results.list <- readTweets(tweets, verbose=FALSE)
+    
+    # constructing data frame with tweet and user variable
+    df <- data.frame(
+        text = unlistWithNA(results.list, 'text'),
+        retweet_count = unlistWithNA(results.list, c('retweeted_status', 'retweet_count')),
+        favorited = unlistWithNA(results.list, 'favorited'),
+        truncated = unlistWithNA(results.list, 'truncated'),
+        id_str = unlistWithNA(results.list, 'id_str'),
+        in_reply_to_screen_name = unlistWithNA(results.list, 'in_reply_to_screen_name'),
+        source = unlistWithNA(results.list, 'source'),
+        retweeted = unlistWithNA(results.list, 'retweeted'),
+        created_at = unlistWithNA(results.list, 'created_at'),
+        in_reply_to_status_id_str = unlistWithNA(results.list, 'in_reply_to_status_id_str'),
+        in_reply_to_user_id_str = unlistWithNA(results.list, 'in_reply_to_user_id_str'),
+        lang = unlistWithNA(results.list, 'lang'),
+        listed_count = unlistWithNA(results.list, c('user', 'listed_count')),
+        verified = unlistWithNA(results.list, c('user', 'verified')),
+        location = unlistWithNA(results.list, c('user', 'location')),
+        user_id_str = unlistWithNA(results.list, c('user', 'id_str')),
+        description = unlistWithNA(results.list, c('user', 'description')),
+        geo_enabled = unlistWithNA(results.list, c('user', 'geo_enabled')),
+        user_created_at = unlistWithNA(results.list, c('user', 'created_at')),
+        statuses_count = unlistWithNA(results.list, c('user', 'statuses_count')),
+        followers_count = unlistWithNA(results.list, c('user', 'followers_count')),
+        favourites_count = unlistWithNA(results.list, c('user', 'favourites_count')),
+        protected = unlistWithNA(results.list, c('user', 'protected')),
+        user_url = unlistWithNA(results.list, c('user', 'url')),
+        name = unlistWithNA(results.list, c('user', 'name')),
+        time_zone = unlistWithNA(results.list, c('user', 'time_zone')),
+        user_lang = unlistWithNA(results.list, c('user', 'lang')),
+        utc_offset = unlistWithNA(results.list, c('user', 'utc_offset')),
+        friends_count = unlistWithNA(results.list, c('user', 'friends_count')),
+        screen_name = unlistWithNA(results.list, c('user', 'screen_name')),
+        stringsAsFactors=F)
 
-    # Saves tweet and user information into memory
-    df.tweet <- as.data.frame(sapply(tweet.vars, parse.tweet, results.list), stringsAsFactors=FALSE)
-    df.user <- as.data.frame(sapply(user.vars, parse.user, results.list), stringsAsFactors=FALSE)
-    if (simplify==FALSE){
-        df.place <- as.data.frame(sapply(place.vars, parse.place, results.list), stringsAsFactors=FALSE)
-        df.coord <- as.data.frame(parse.coordinates(results.list), stringsAsFactors=FALSE); names(df.coord) <- c("lon", "lat")
-        df.entities <- as.data.frame(parse.entities(results.list), stringsAsFactors=FALSE); names(df.entities) <- c("expanded_url", "url")          
-    }
-    # fixing duplicated names
-    names(df.user)[c(4,7,12)] <- c("user_id_str", "user_created_at", "user_url")
-    if (simplify==FALSE){
-        names(df.place)[c(5,6)] <- c("place_name", "place_id")
-    }
+    # retweet_count is extracted from retweeted_status. If this is not a RT, set to zero
+    df$retweet_count[is.na(df$retweet_count)] <- 0
 
+    # adding geographic variables and url entities
     if (simplify==FALSE){
-        df <- cbind(df.tweet, df.user, df.place, df.coord, df.entities) 
-    }
-    if (simplify==TRUE){
-        df <- cbind(df.tweet, df.user)    
+        df$country_code <- unlistWithNA(results.list, c('place', 'country_code'))
+        df$country <- unlistWithNA(results.list, c('place', 'country'))
+        df$place_type <- unlistWithNA(results.list, c('place', 'place_type'))
+        df$full_name <- unlistWithNA(results.list, c('place', 'full_name'))
+        df$place_name <- unlistWithNA(results.list, c('place', 'place_name'))
+        df$place_id <- unlistWithNA(results.list, c('place', 'place_id'))
+        place_lat_1 <- unlistWithNA(results.list, c('place', 'bounding_box', 'coordinates', 1, 1, 2))
+        place_lat_2 <- unlistWithNA(results.list, c('place', 'bounding_box', 'coordinates', 1, 2, 2))
+        df$place_lat <- sapply(1:length(results.list), function(x) 
+            mean(c(place_lat_1[x], place_lat_2[x]), na.rm=TRUE))
+        place_lon_1 <- unlistWithNA(results.list, c('place', 'bounding_box', 'coordinates', 1, 1, 1))
+        place_lon_2 <- unlistWithNA(results.list, c('place', 'bounding_box', 'coordinates', 1, 3, 1))
+        df$place_lon <- sapply(1:length(results.list), function(x) 
+            mean(c(place_lon_1[x], place_lon_2[x]), na.rm=TRUE))
+        df$lat <- unlistWithNA(results.list, c('geo', 'coordinates', 1))
+        df$lon <- unlistWithNA(results.list, c('geo', 'coordinates', 2))
+        df$expanded_url <- unlistWithNA(results.list, c('entities', 'urls', 1, 'expanded_url'))
+        df$url <- unlistWithNA(results.list, c('entities', 'urls', 1, 'url'))
+
     }
 
     # information message
@@ -122,49 +137,44 @@ parseTweets <- function(tweets, simplify=FALSE, verbose=TRUE){
     return(df)
 }
 
-# Function to parse tweet information
-parse.tweet <- function(var, list=list){
-        values <- rep(NA, length(list))
-        missing <- sapply((sapply(list, '[[', var)), is.null)
-        values[missing==FALSE] <- unlist(sapply(list, '[[', var))
-        return(values)
-}
 
-# Function to parse user information
-parse.user <- function(user.var, list=list){
-        values <- rep(NA, length(list))
-        user <- sapply(list, '[', "user")
-        missing <- sapply(sapply(user, '[', user.var), is.null)
-        values[missing==FALSE] <- unlist(sapply(user, '[', user.var))
-        return(values)
-}
+unlistWithNA <- function(lst, field){
+    if (length(field)==1){
+        notnulls <- unlist(lapply(lst, function(x) !is.null(x[[field]])))
+        vect <- rep(NA, length(lst))
+        vect[notnulls] <- unlist(lapply(lst[notnulls], '[[', field))
+    }
+    if (length(field)==2){
+        notnulls <- unlist(lapply(lst, function(x) !is.null(x[[field[1]]][[field[2]]])))
+        vect <- rep(NA, length(lst))
+        vect[notnulls] <- unlist(lapply(lst[notnulls], function(x) x[[field[1]]][[field[2]]]))
+    }
+    if (length(field)==3 & field[1]!="geo"){
+        notnulls <- unlist(lapply(lst, function(x) !is.null(x[[field[1]]][[field[2]]][[field[3]]])))
+        vect <- rep(NA, length(lst))
+        vect[notnulls] <- unlist(lapply(lst[notnulls], function(x) x[[field[1]]][[field[2]]][[field[3]]]))
+    }
+    if (field[1]=="geo"){
+        notnulls <- unlist(lapply(lst, function(x) !is.null(x[[field[1]]][[field[2]]])))
+        vect <- rep(NA, length(lst))
+        vect[notnulls] <- unlist(lapply(lst[notnulls], function(x) x[[field[1]]][[field[2]]][[as.numeric(field[3])]]))
+    }
 
-# Function to parse location
-parse.place <- function(place.var, list=list){
-        values <- rep(NA, length(list))
-        place <- if (!is.null(sapply(list, '[', "place"))) sapply(list, '[', "place") else vector("list", length(list))
-        missing <- sapply(sapply(place, '[[', place.var), is.null)
-        values[missing==FALSE] <- unlist(sapply(place, '[[', place.var))
-        return(values)
+    if (length(field)==4 && field[2]!="urls"){
+        notnulls <- unlist(lapply(lst, function(x) length(x[[field[1]]][[field[2]]][[field[3]]][[field[4]]])>0))
+        vect <- rep(NA, length(lst))
+        vect[notnulls] <- unlist(lapply(lst[notnulls], function(x) x[[field[1]]][[field[2]]][[field[3]]][[field[4]]]))
+    }
+    if (length(field)==4 && field[2]=="urls"){
+        notnulls <- unlist(lapply(lst, function(x) length(x[[field[1]]][[field[2]]])>0))
+        vect <- rep(NA, length(lst))
+        vect[notnulls] <- unlist(lapply(lst[notnulls], function(x) x[[field[1]]][[field[2]]][[as.numeric(field[3])]][[field[4]]]))
+    }
+    if (length(field)==6 && field[2]=="bounding_box"){
+        notnulls <- unlist(lapply(lst, function(x) length(x[[field[1]]][[field[2]]])>0))
+        vect <- rep(NA, length(lst))
+        vect[notnulls] <- unlist(lapply(lst[notnulls], function(x) 
+            x[[field[1]]][[field[2]]][[field[3]]][[as.numeric(field[4])]][[as.numeric(field[5])]][[as.numeric(field[6])]]))
+    }
+    return(vect)
 }
-
-# Function to parse coordinates
-parse.coordinates <- function(list=list){
-        values <- matrix(NA, ncol=2, nrow=length(list))
-        coord <- sapply(sapply(list, '[', "coordinates"), '[', "coordinates")
-        missing <- as.character(sapply(sapply(coord, '[', "coordinates"), is.null))
-        values[missing=="FALSE"] <- matrix(as.character(unlist(coord)[unlist(coord)!="Point"]), ncol=2, byrow=TRUE)
-        return(values)
-}
-
-# Function to parse entities
-parse.entities <- function(list=list){
-        values <- matrix(NA, ncol=5, nrow=length(list))
-        entities <- sapply(sapply(list, '[', "entities"), '[[', "entities")
-        urls <- sapply(sapply(sapply(entities, '[[', "urls"), '[', 1), '[[', 1)
-        missing <- as.character(sapply(urls, is.null))
-        values[missing=="FALSE"] <- matrix(as.character(unlist(urls)), ncol=5, byrow=TRUE)
-        values <- values[,c(4,5)]
-        return(values)
-}
-
