@@ -74,7 +74,7 @@ parseTweets <- function(tweets, simplify=FALSE, verbose=TRUE){
 
     # if no text in list, change it to NULL
     if (length(results.list)==0){
-        stop(deparse(substitute(x)), " did not contain any tweets.",
+        stop(deparse(substitute(tweets)), " did not contain any tweets. ",
             "See ?parseTweets for more details.")
     }
     
