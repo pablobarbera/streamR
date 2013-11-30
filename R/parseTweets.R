@@ -71,6 +71,12 @@ parseTweets <- function(tweets, simplify=FALSE, verbose=TRUE){
     
     ## from json to list
     results.list <- readTweets(tweets, verbose=FALSE)
+
+    # if no text in list, change it to NULL
+    if (length(results.list)==0){
+        stop(deparse(substitute(x)), " did not contain any tweets.",
+            "See ?parseTweets for more details.")
+    }
     
     # constructing data frame with tweet and user variable
     df <- data.frame(

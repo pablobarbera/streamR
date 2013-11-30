@@ -18,6 +18,10 @@
 #' which is loaded in memory as a string vector when the connection to the stream
 #' is closed.
 #'
+#' The total number of actual tweets that are captured might be lower than the number 
+#' of tweets requested because blank lines, deletion notices, and incomplete
+#' tweets are included in the count of tweets downloaded.
+#'
 #' @author
 #' Pablo Barbera \email{pablo.barbera@@nyu.edu}
 #' @seealso \code{\link{filterStream}}, \code{\link{userStream}}, \code{\link{parseTweets}}
@@ -126,13 +130,13 @@ sampleStream <- function(file.name, timeout=0, tweets=NULL, oauth=NULL, verbose=
     if (open.in.memory==TRUE){
         raw.tweets <- readLines(file.name, warn=FALSE, encoding="UTF-8")
         if (verbose==TRUE){ message("Connection to Twitter stream was closed after ", seconds,
-            " seconds with ", length(raw.tweets), " tweets downloaded.") }
+            " seconds with up to ", length(raw.tweets), " tweets downloaded.") }
         unlink(file.name)           
         return(raw.tweets)
     }
     if (open.in.memory==FALSE) {
         if (verbose==TRUE) {message("Connection to Twitter stream was closed after ", seconds,
-            " seconds with ", i, " tweets downloaded.")}    
+            " seconds with up to ", i, " tweets downloaded.")}    
     }
 }
 

@@ -19,6 +19,10 @@
 #' Tweets can also be filtered by keywords and location, using the \code{track}
 #' and \code{locations} arguments.
 #'
+#' The total number of actual tweets that are captured might be lower than the number 
+#' of tweets requested because blank lines, deletion notices, and incomplete
+#' tweets are included in the count of tweets downloaded.
+#'
 #' Note that when no file name is provided, tweets are written to a temporary file, 
 #' which is loaded in memory as a string vector when the connection to the stream
 #' is closed.
@@ -283,13 +287,13 @@ userStream <- function(file.name=NULL, with="followings", replies=NULL, track=NU
 	if (open.in.memory==TRUE){
 		raw.tweets <- readLines(file.name, warn=FALSE, encoding="UTF-8")
 		if (verbose==TRUE){ message("Connection to Twitter stream was closed after ", seconds,
-			" seconds with ", length(raw.tweets), " tweets downloaded.") }
+			" seconds with up to ", length(raw.tweets), " tweets downloaded.") }
 		unlink(file.name)			
 		return(raw.tweets)
 	}
 	if (open.in.memory==FALSE) {
 		if (verbose==TRUE) {message("Connection to Twitter stream was closed after ", seconds,
-			" seconds with ", i, " tweets downloaded.")}	
+			" seconds with up to ", i, " tweets downloaded.")}	
 	}
 }
 
