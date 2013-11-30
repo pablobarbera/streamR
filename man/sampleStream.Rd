@@ -49,6 +49,11 @@ all public statuses.}
   written to a temporary file, which is loaded in memory as
   a string vector when the connection to the stream is
   closed.
+
+  The total number of actual tweets that are captured might
+  be lower than the number of tweets requested because
+  blank lines, deletion notices, and incomplete tweets are
+  included in the count of tweets downloaded.
 }
 \examples{
 \dontrun{

@@ -118,6 +118,11 @@ match one or more filter predicates.}
   a string vector when the connection to the stream is
   closed.
 
+  The total number of actual tweets that are captured might
+  be lower than the number of tweets requested because
+  blank lines, deletion notices, and incomplete tweets are
+  included in the count of tweets downloaded.
+
   To store tweets in MongoDB, it is necessary to install
   the MongoDB server in a local or remote machine. See here
   for instructions:
