@@ -8,15 +8,16 @@
 #' @description
 #' \code{filterStream} opens a connection to Twitter's Streaming API
 #' that will return public statuses that match one or more filter predicates.
-#' Tweets can be filtered by keywords, users, and location. The output can be
-#' saved as an object in memory, written to a text file or stored in MongoDB
+#' Tweets can be filtered by keywords, users, language, and location. The output
+#' can be saved as an object in memory or written to a text file.
 #'
 #' @details
 #' \code{filterStream} provides access to the statuses/filter Twitter stream.
 #'
 #' It will return public statuses that
 #' match the keywords given in the \code{track} argument, published by the users
-#' specified in the \code{follow} argument, and sent within the location bounding
+#' specified in the \code{follow} argument, written in the language specified
+#' in the \code{language} argument, and sent within the location bounding
 #' boxes declared in the \code{locations} argument.
 #'
 #' Note that location bounding boxes do not act as filters for other filter
@@ -24,6 +25,9 @@
 #' rstats (even non-geolocated tweets) OR coming from the New York City area. For more
 #' information on how the Streaming API request parameters work, check the
 #' documentation at: \url{http://dev.twitter.com/docs/streaming-apis/parameters}.
+#'
+#' Also note that the \code{language} parameter needs to be used in combination
+#' with another filter option (either keywords or location).
 #'
 #' If any of these arguments is left empty (e.g. no user filter is specified),
 #' the function will return all public statuses that match the other filters.
@@ -36,9 +40,6 @@
 #' The total number of actual tweets that are captured might be lower than the number 
 #' of tweets requested because blank lines, deletion notices, and incomplete
 #' tweets are included in the count of tweets downloaded.
-#'
-#' To store tweets in MongoDB, it is necessary to install the MongoDB server in a local
-#' or remote machine. See here for instructions: \url{http://docs.mongodb.org/manual/installation/}
 #'
 #' @author
 #' Pablo Barbera \email{pablo.barbera@@nyu.edu}
@@ -82,15 +83,6 @@
 #' to the user's twitter session. This is currently the only method for authentication. 
 #' See examples for more details.
 #'
-#' @param ns string, namespace of the collection to which tweets will be added. Generally,
-#' it will be of the form "database.collection". If the database or the collection do not exist,
-#' they will be automatically created; if they exist, tweets will be appended.
-#'
-#' @param host string host/port where mongo database is hosted. Default is localhost (127.0.0.1).
-#'
-#' @param username string, username to be used for authentication purposes with MongoDB.
-#' 
-#' @param password string, password corresponding to the given username.
 #'
 #' @param verbose logical, default is \code{TRUE}, which generates some output to the
 #' R console with information about the capturing process.
@@ -129,22 +121,13 @@
 #'   filterStream( file="tweets_rstats.json", track="rstats",
 #'       locations=c(-74,40,-73,41), timeout=600, oauth=my_oauth )
 #'
-#' ## capture 100 tweets sent from New York City and storing in MongoDB, in collection
-#' ## 'nyc' of database 'tweets'
-#'   tweets <- filterStream( ns="tweets.nyc", 
-#'       locations=c(-74,40,-73,41), tweets=100, oauth=my_oauth ) 
-#'
-#' ## same as above, but also storing tweets in disk
-#'   tweets <- filterStream( file.name="tweets_nyc.json", ns="tweets.nyc", 
-#'       locations=c(-74,40,-73,41), tweets=100, oauth=my_oauth ) 
 #' }
 #'
 
 filterStream <- function(file.name=NULL, track=NULL, follow=NULL, locations=NULL, language=NULL, 
-	timeout=0, tweets=NULL, oauth, ns=NULL, host='localhost', username="", password="", verbose=TRUE)
+	timeout=0, tweets=NULL, oauth, verbose=TRUE)
 {
-	if (!is.null(ns)){require(rmongodb)}
-	require(ROAuth)
+
 	open.in.memory <- FALSE
    
   	# checking user input is correct
@@ -155,7 +138,7 @@ filterStream <- function(file.name=NULL, track=NULL, follow=NULL, locations=NULL
    if (all(is.null(c(track,follow,locations))) & !is.null(language)){
    		stop("Language parameter can only be used in combination with other filter parameters.")
    }
-   if ((missing(file.name)||is.character(file.name)==FALSE) & is.null(ns)){
+   if ((missing(file.name)||is.character(file.name)==FALSE)){
    	stop("The file where the tweets will be stored was not named properly.")
    }
    if (timeout<0||is.numeric(timeout)==FALSE||length(timeout)>1){
@@ -176,53 +159,12 @@ filterStream <- function(file.name=NULL, track=NULL, follow=NULL, locations=NULL
  	# building parameter lists
  	params <- buildArgList(track, follow, language, locations, oauth=oauth)
 
- 	# WRITING FUNCTIONS:
-
- 	if (is.null(file.name) & is.null(ns)){
- 		stop("Error: file.name and ns parameters are empty")
- 	}
-
+ 	# WRITING FUNCTION
  	## tweet counter
  	i <- 0
 
- 	## write the JSON tweets from Streaming API to a mongoDB collection
- 	if (is.null(file.name) & !is.null(ns)){
- 		db <- strsplit(ns, "\\.")[[1]][1]
- 		coll <- strsplit(ns, "\\.")[[1]][2]
- 		if (verbose==TRUE) { message("Storing tweets in collection '", 
- 			coll, "' of database '", db, "' in MongoDB") }
-		mongo <- mongo.create(host=host, username=username, password=password, db=db)
-		if (mongo.get.err(mongo)!=0){ stop("Error in connection to MongoDB") }
-		# function that will insert tweets into db
-		write.tweets <- function(x){
-			if (nchar(x)>0){
-				i <<- i + 1
-				json.list <- fromJSON(x)
-				fields <- names(json.list)
-				if ('text' %in% fields){
-					names(json.list)[fields=="id_str"] <- "_id"
-					mongo.insert(mongo=mongo, ns=ns, json.list)
-				}	
-			}	
-		} 
-		if (!is.null(tweets) && is.numeric(tweets) && tweets>0){
-			write.tweets <- function(x){
-				if (i>=tweets){break}
-				if (nchar(x)>0){
-					i <<- i + 1
-					json.list <- fromJSON(x)
-					fields <- names(json.list)
-					if ('text' %in% fields){
-						names(json.list)[fields=="id_str"] <- "_id"
-						mongo.insert(mongo=mongo, ns=ns, json.list)
-					}	
-				}	
-			}
-		}
- 	}
-
  	## write the JSON tweets from Streaming API to a text file
- 	if (!is.null(file.name) & is.null(ns)){
+ 	if (!is.null(file.name)){
  		if (verbose==TRUE) message("Capturing tweets...")
 		if (nchar(file.name)==0) {
 			open.in.memory <- TRUE
@@ -249,49 +191,6 @@ filterStream <- function(file.name=NULL, track=NULL, follow=NULL, locations=NULL
  	}
 
 
-
- 	## write the JSON tweets from Streaming API to a text file AND a mongo db
- 	if (!is.null(file.name) & !is.null(ns)){
- 		if (nchar(file.name)==0){ 
- 			stop("The file where the tweets will be stored was not named properly.") }
- 		db <- strsplit(ns, "\\.")[[1]][1]
- 		coll <- strsplit(ns, "\\.")[[1]][2]
- 		if (verbose==TRUE) { message("Storing tweets in collection '", 
- 			coll, "' of database '", db, "' in MongoDB and in file '", file.name, "'") }
-		mongo <- mongo.create(host=host, username=username, password=password, db=db)
-		if (mongo.get.err(mongo)!=0){ stop("Error in connection to MongoDB") }
-		conn <- file(description=file.name, open="a")
-		# function that will insert tweets into db
-		write.tweets <- function(x){
-			if (nchar(x)>0){
-				i <<- i + 1
-				writeLines(x, conn, sep="")
-				json.list <- fromJSON(x)
-				fields <- names(json.list)
-				if ('text' %in% fields){
-					names(json.list)[fields=="id_str"] <- "_id"
-					mongo.insert(mongo=mongo, ns=ns, json.list)
-				}	
-			}	
-		} 
-		
-		if (!is.null(tweets) && is.numeric(tweets) && tweets>0){	
-			write.tweets <- function(x){
-				if (i>=tweets){break}
-				if (nchar(x)>0){
-					i <<- i + 1
-					writeLines(x, conn, sep="")
-					json.list <- fromJSON(x)
-					fields <- names(json.list)
-					if ('text' %in% fields){
-						names(json.list)[fields=="id_str"] <- "_id"
-						mongo.insert(mongo=mongo, ns=ns, json.list)
-					}	
-				}	
-			}
-		}
- 	}
-
  	init <- Sys.time()
  	# connecting to Streaming API
 	url <- "https://stream.twitter.com/1.1/statuses/filter.json"
@@ -301,7 +200,6 @@ filterStream <- function(file.name=NULL, track=NULL, follow=NULL, locations=NULL
 			error=function(e) e)
 
 	# housekeeping...
-	if (!is.null(ns)){mongo.disconnect(mongo)}	
 	if (!is.null(file.name)){ close(conn) }
 
 	# information messages

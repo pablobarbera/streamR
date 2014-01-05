@@ -58,21 +58,21 @@ save(my_oauth, file = &quot;my_oauth.Rdata&quot;)
 ## Loading required package: rjson
 </code></pre>
 
-<pre><code class="r">load(&quot;my_oauth&quot;)
-filterStream(&quot;tweets.json&quot;, track = c(&quot;Obama&quot;, &quot;Biden&quot;), timeout = 10, 
+<pre><code class="r">load(&quot;my_oauth.Rdata&quot;)
+filterStream(&quot;tweets.json&quot;, track = c(&quot;Obama&quot;, &quot;Biden&quot;), timeout = 120, 
   oauth = my_oauth)
 </code></pre>
 
 <pre><code>## Loading required package: ROAuth
 ## Loading required package: digest
 ## Capturing tweets...
-## Connection to Twitter stream was closed after 120 seconds with 1321 kB received.
+## Connection to Twitter stream was closed after 120 seconds with up to 350 tweets downloaded.
 </code></pre>
 
 <pre><code class="r">tweets.df &lt;- parseTweets(&quot;tweets.json&quot;, simplify = TRUE)
 </code></pre>
 
-<pre><code>## 803 tweets have been parsed.
+<pre><code>## 350 tweets have been parsed.
 </code></pre>
 
 <p>Note that here I&#39;m connecting to the stream for just two minutes, but ideally I should have the connection continuously open, with some method to handle exceptions and reconnect when there&#39;s an error. I&#39;m also using OAuth authentication (see below), and storing the tweets in a data frame using the <code>parseTweets</code> function. As I expected, Obama is mentioned more often than Biden at the moment I created this post:</p>
@@ -81,7 +81,7 @@ filterStream(&quot;tweets.json&quot;, track = c(&quot;Obama&quot;, &quot;Biden&q
    length(grep(&quot;biden&quot;, tweets.df$text, ignore.case = TRUE)) )
 </code></pre>
 
-<pre><code>## [1] 765  28
+<pre><code>## [1] 347  2
 </code></pre>
 
 <p>Tweets can also be filtered by two additional parameters: <code>follow</code>, which can be used to include tweets published by only a subset of Twitter users, and <code>locations</code>, which will return geo-located tweets sent within bounding boxes defined by a set of coordinates. Using these two options involves some additional complications &ndash; for example, the Twitter users need to be specified as a vector of user IDs and not just screen names, and the <code>locations</code> filter is incremental to any keyword in the <code>track</code> argument. For more information, I would suggest to check Twitter&#39;s <a href="http://dev.twitter.com/docs/streaming-apis/parameters">documentation</a> for each parameter.</p>
@@ -127,8 +127,7 @@ mean(as.numeric(tweets.df$friends_count))
 ##   228 13503
 </code></pre>
 
-<pre><code class="r">round(sort(table(tweets.df$lang), decreasing = T)[1:5]/sum(table(tweets.df$lang)), 
-    2)
+<pre><code class="r">round(sort(table(tweets.df$lang), decreasing = T)[1:5]/sum(table(tweets.df$lang)), 2)
 </code></pre>
 
 <pre><code>## 
@@ -142,8 +141,7 @@ mean(as.numeric(tweets.df$friends_count))
 
 <pre><code class="r">userStream(&quot;mytweets.json&quot;, timeout = 120, oauth = my_oauth, verbose = FALSE)
 tweets.df &lt;- parseTweets(&quot;mytweets.json&quot;, verbose = FALSE)
-round(sort(table(tweets.df$lang), decreasing = T)[1:3]/sum(table(tweets.df$lang)), 
-    2)
+round(sort(table(tweets.df$lang), decreasing = T)[1:3]/sum(table(tweets.df$lang)), 2)
 </code></pre>
 
 <pre><code>## 
@@ -160,8 +158,6 @@ round(sort(table(tweets.df$lang), decreasing = T)[1:3]/sum(table(tweets.df$lang)
 
 <pre><code>## [1] &quot;   15086 tweetsSample.json&quot;
 </code></pre>
-
-<h3>Concluding...</h3>
 
 <h3>Concluding...</h3>
 

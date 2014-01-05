@@ -71,7 +71,6 @@
 
 sampleStream <- function(file.name, timeout=0, tweets=NULL, oauth=NULL, verbose=TRUE)
 {
-	require(RCurl); require(ROAuth)
     open.in.memory <- FALSE
    # authentication
    if (is.null(oauth)) {

@@ -11,8 +11,6 @@ Depends:
     RCurl,
     rjson,
     ROAuth
-Suggests:
-    rmongodb
 License: GPL-2
 Collate:
     'filterStream.R'
@@ -20,7 +18,4 @@ Collate:
     'sampleStream.R'
     'userStream.R'
     'streamR-package.R'
-    'countTweets.R'
-    'topRetweets.R'
-    'getTweets.R'
     'readTweets.R'

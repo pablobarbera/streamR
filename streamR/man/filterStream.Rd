@@ -5,9 +5,7 @@ match one or more filter predicates.}
 \usage{
   filterStream(file.name = NULL, track = NULL,
     follow = NULL, locations = NULL, language = NULL,
-    timeout = 0, tweets = NULL, oauth, ns = NULL,
-    host = "localhost", username = "", password = "",
-    verbose = TRUE)
+    timeout = 0, tweets = NULL, oauth, verbose = TRUE)
 }
 \arguments{
   \item{file.name}{string, name of the file where tweets
@@ -63,21 +61,6 @@ match one or more filter predicates.}
   This is currently the only method for authentication. See
   examples for more details.}
 
-  \item{ns}{string, namespace of the collection to which
-  tweets will be added. Generally, it will be of the form
-  "database.collection". If the database or the collection
-  do not exist, they will be automatically created; if they
-  exist, tweets will be appended.}
-
-  \item{host}{string host/port where mongo database is
-  hosted. Default is localhost (127.0.0.1).}
-
-  \item{username}{string, username to be used for
-  authentication purposes with MongoDB.}
-
-  \item{password}{string, password corresponding to the
-  given username.}
-
   \item{verbose}{logical, default is \code{TRUE}, which
   generates some output to the R console with information
   about the capturing process.}
@@ -86,9 +69,9 @@ match one or more filter predicates.}
   \code{filterStream} opens a connection to Twitter's
   Streaming API that will return public statuses that match
   one or more filter predicates. Tweets can be filtered by
-  keywords, users, and location. The output can be saved as
-  an object in memory, written to a text file or stored in
-  MongoDB
+  keywords, users, language, and location. The output can
+  be saved as an object in memory or written to a text
+  file.
 }
 \details{
   \code{filterStream} provides access to the
@@ -96,9 +79,10 @@ match one or more filter predicates.}
 
   It will return public statuses that match the keywords
   given in the \code{track} argument, published by the
-  users specified in the \code{follow} argument, and sent
-  within the location bounding boxes declared in the
-  \code{locations} argument.
+  users specified in the \code{follow} argument, written in
+  the language specified in the \code{language} argument,
+  and sent within the location bounding boxes declared in
+  the \code{locations} argument.
 
   Note that location bounding boxes do not act as filters
   for other filter parameters. In the fourth example below,
@@ -107,6 +91,10 @@ match one or more filter predicates.}
   area. For more information on how the Streaming API
   request parameters work, check the documentation at:
   \url{http://dev.twitter.com/docs/streaming-apis/parameters}.
+
+  Also note that the \code{language} parameter needs to be
+  used in combination with another filter option (either
+  keywords or location).
 
   If any of these arguments is left empty (e.g. no user
   filter is specified), the function will return all public
@@ -122,11 +110,6 @@ match one or more filter predicates.}
   be lower than the number of tweets requested because
   blank lines, deletion notices, and incomplete tweets are
   included in the count of tweets downloaded.
-
-  To store tweets in MongoDB, it is necessary to install
-  the MongoDB server in a local or remote machine. See here
-  for instructions:
-  \url{http://docs.mongodb.org/manual/installation/}
 }
 \examples{
 \dontrun{
@@ -163,14 +146,6 @@ match one or more filter predicates.}
   filterStream( file="tweets_rstats.json", track="rstats",
       locations=c(-74,40,-73,41), timeout=600, oauth=my_oauth )
 
-## capture 100 tweets sent from New York City and storing in MongoDB, in collection
-## 'nyc' of database 'tweets'
-  tweets <- filterStream( ns="tweets.nyc",
-      locations=c(-74,40,-73,41), tweets=100, oauth=my_oauth )
-
-## same as above, but also storing tweets in disk
-  tweets <- filterStream( file.name="tweets_nyc.json", ns="tweets.nyc",
-      locations=c(-74,40,-73,41), tweets=100, oauth=my_oauth )
 }
 }
 \author{

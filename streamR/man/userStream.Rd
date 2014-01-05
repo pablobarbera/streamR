@@ -4,9 +4,7 @@
 \usage{
   userStream(file.name = NULL, with = "followings",
     replies = NULL, track = NULL, locations = NULL,
-    timeout = 0, tweets = NULL, oauth, ns = NULL,
-    host = "localhost", username = "", password = "",
-    verbose = TRUE)
+    timeout = 0, tweets = NULL, oauth, verbose = TRUE)
 }
 \arguments{
   \item{file.name}{string, name of the file where tweets
@@ -65,21 +63,6 @@
   This is the only method for authentication available for
   user streams. See examples for more details.}
 
-  \item{ns}{string, namespace of the collection to which
-  tweets will be added. Generally, it will be of the form
-  "database.collection". If the database or the collection
-  do not exist, they will be automatically created; if they
-  exist, tweets will be appended.}
-
-  \item{host}{string host/port where mongo database is
-  hosted. Default is localhost (127.0.0.1).}
-
-  \item{username}{string, username to be used for
-  authentication purposes with MongoDB.}
-
-  \item{password}{string, password corresponding to the
-  given username.}
-
   \item{verbose}{logical, default is \code{TRUE}, which
   generates some output to the R console with information
   about the capturing process.}
@@ -88,7 +71,7 @@
   \code{userStream} opens a connection to Twitter's
   Streaming API that will return statuses specific to the
   authenticated user. The output can be saved as an object
-  in memory, written to a text file or stored in MongoDB.
+  in memory or written to a text file.
 }
 \details{
   This function provides access to messages for a single
@@ -111,11 +94,6 @@
   written to a temporary file, which is loaded in memory as
   a string vector when the connection to the stream is
   closed.
-
-  To store tweets in MongoDB, it is necessary to install
-  the MongoDB server in a local or remote machine. See here
-  for instructions:
-  \url{http://docs.mongodb.org/manual/installation/}
 }
 \examples{
 \dontrun{
@@ -134,11 +112,8 @@
     accessURL=accessURL, authURL=authURL)
  my_oauth$handshake(cainfo = system.file("CurlSSL", "cacert.pem", package = "RCurl"))
  save(my_oauth, file="my_oauth")
+## Capturing 10 tweets from a user's timeline
  userStream( file.name="my_timeline.json", with="followings",
-     timeout=600, oauth=my_oauth )
-## Capturing 10 tweets from user's timeline and storing in MongoDB
-	load("my_oauth")
- userStream( ns="tweets.mytimeline", with="followings",
      tweets=10, oauth=my_oauth )
 }
 }

@@ -7,7 +7,7 @@
 #' @description
 #' \code{userStream} opens a connection to Twitter's Streaming API
 #' that will return statuses specific to the authenticated user. The output
-#' can be saved as an object in memory, written to a text file or stored in MongoDB.
+#' can be saved as an object in memory or written to a text file.
 #'
 #' @details
 #' This function provides access to messages for a single user.
@@ -27,8 +27,6 @@
 #' which is loaded in memory as a string vector when the connection to the stream
 #' is closed.
 #'
-#' To store tweets in MongoDB, it is necessary to install the MongoDB server in a local
-#' or remote machine. See here for instructions: \url{http://docs.mongodb.org/manual/installation/}
 #'
 #' @author
 #' Pablo Barbera \email{pablo.barbera@@nyu.edu}
@@ -75,15 +73,6 @@
 #' to the user's twitter session. This is the only method for authentication available
 #' for user streams. See examples for more details.
 #'
-#' @param ns string, namespace of the collection to which tweets will be added. Generally,
-#' it will be of the form "database.collection". If the database or the collection do not exist,
-#' they will be automatically created; if they exist, tweets will be appended.
-#'
-#' @param host string host/port where mongo database is hosted. Default is localhost (127.0.0.1).
-#'
-#' @param username string, username to be used for authentication purposes with MongoDB.
-#' 
-#' @param password string, password corresponding to the given username.
 #'
 #' @param verbose logical, default is \code{TRUE}, which generates some output to the
 #' R console with information about the capturing process.
@@ -104,21 +93,15 @@
 #'     accessURL=accessURL, authURL=authURL)
 #'  my_oauth$handshake(cainfo = system.file("CurlSSL", "cacert.pem", package = "RCurl"))
 #'  save(my_oauth, file="my_oauth")
+#' ## Capturing 10 tweets from a user's timeline
 #'  userStream( file.name="my_timeline.json", with="followings",
-#'      timeout=600, oauth=my_oauth )
-#' ## Capturing 10 tweets from user's timeline and storing in MongoDB
-#'	load("my_oauth")
-#'  userStream( ns="tweets.mytimeline", with="followings", 
 #'      tweets=10, oauth=my_oauth )
 #' }
 #'
 
 userStream <- function(file.name=NULL, with="followings", replies=NULL, track=NULL, 
-	locations=NULL, timeout=0, tweets=NULL, oauth, 
-	ns=NULL, host='localhost', username="", password="", verbose=TRUE)
+	locations=NULL, timeout=0, tweets=NULL, oauth, verbose=TRUE)
 {
-	if (!is.null(ns)){require(rmongodb, quietly=TRUE)}
-	require(ROAuth)
 	open.in.memory <- FALSE
    
 	# checking user input is correct
@@ -132,7 +115,7 @@ userStream <- function(file.name=NULL, with="followings", replies=NULL, track=NU
 				See ?userStream for details.")
 		}
 	}
-	if ((missing(file.name)||is.character(file.name)==FALSE) & is.null(ns)){
+	if ((missing(file.name)||is.character(file.name)==FALSE)){
 		stop("The file where the tweets will be stored was not named properly.")
 	}
 	if (timeout<0||is.numeric(timeout)==FALSE||length(timeout)>1){
@@ -153,53 +136,13 @@ userStream <- function(file.name=NULL, with="followings", replies=NULL, track=NU
  	# building parameter lists
  	params <- buildArgList(with=with, replies=replies, track=track, locations=locations, oauth=oauth)
 
- 	# WRITING FUNCTIONS:
-
- 	if (is.null(file.name) & is.null(ns)){
- 		stop("Error: file.name and ns parameters are empty")
- 	}
+ 	# WRITING FUNCTION:
 
  	## tweet counter
  	i <- -1 ## starting at -1 because stream returns list of friends first
 
- 	## write the JSON tweets from Streaming API to a mongoDB collection
- 	if (is.null(file.name) & !is.null(ns)){
- 		db <- strsplit(ns, "\\.")[[1]][1]
- 		coll <- strsplit(ns, "\\.")[[1]][2]
- 		if (verbose==TRUE) { message("Storing tweets in collection '", 
- 			coll, "' of database '", db, "' in MongoDB") }
-		mongo <- mongo.create(host=host, username=username, password=password, db=db)
-		if (mongo.get.err(mongo)!=0){ stop("Error in connection to MongoDB") }
-		# function that will insert tweets into db
-		write.tweets <- function(x){
-			if (nchar(x)>0){
-				i <<- i + 1
-				json.list <- fromJSON(x)
-				fields <- names(json.list)
-				if ('text' %in% fields){
-					names(json.list)[fields=="id_str"] <- "_id"
-					mongo.insert(mongo=mongo, ns=ns, json.list)
-				}	
-			}	
-		} 
-		if (!is.null(tweets) && is.numeric(tweets) && tweets>0){
-			write.tweets <- function(x){
-				if (i>=tweets){break}
-				if (nchar(x)>0){
-					i <<- i + 1
-					json.list <- fromJSON(x)
-					fields <- names(json.list)
-					if ('text' %in% fields){
-						names(json.list)[fields=="id_str"] <- "_id"
-						mongo.insert(mongo=mongo, ns=ns, json.list)
-					}	
-				}	
-			}
-		}
- 	}
-
  	## write the JSON tweets from Streaming API to a text file
- 	if (!is.null(file.name) & is.null(ns)){
+ 	if (!is.null(file.name)){
  		if (verbose==TRUE) message("Capturing tweets...")
 		if (nchar(file.name)==0) {
 			open.in.memory <- TRUE
@@ -226,49 +169,6 @@ userStream <- function(file.name=NULL, with="followings", replies=NULL, track=NU
  	}
 
 
-
- 	## write the JSON tweets from Streaming API to a text file AND a mongo db
- 	if (!is.null(file.name) & !is.null(ns)){
- 		if (nchar(file.name)==0){ 
- 			stop("The file where the tweets will be stored was not named properly.") }
- 		db <- strsplit(ns, "\\.")[[1]][1]
- 		coll <- strsplit(ns, "\\.")[[1]][2]
- 		if (verbose==TRUE) { message("Storing tweets in collection '", 
- 			coll, "' of database '", db, "' in MongoDB and in file '", file.name, "'") }
-		mongo <- mongo.create(host=host, username=username, password=password, db=db)
-		if (mongo.get.err(mongo)!=0){ stop("Error in connection to MongoDB") }
-		conn <- file(description=file.name, open="a")
-		# function that will insert tweets into db
-		write.tweets <- function(x){
-			if (nchar(x)>0){
-				i <<- i + 1
-				writeLines(x, conn, sep="")
-				json.list <- fromJSON(x)
-				fields <- names(json.list)
-				if ('text' %in% fields){
-					names(json.list)[fields=="id_str"] <- "_id"
-					mongo.insert(mongo=mongo, ns=ns, json.list)
-				}	
-			}	
-		} 
-		
-		if (!is.null(tweets) && is.numeric(tweets) && tweets>0){	
-			write.tweets <- function(x){
-				if (i>=tweets){break}
-				if (nchar(x)>0){
-					i <<- i + 1
-					writeLines(x, conn, sep="")
-					json.list <- fromJSON(x)
-					fields <- names(json.list)
-					if ('text' %in% fields){
-						names(json.list)[fields=="id_str"] <- "_id"
-						mongo.insert(mongo=mongo, ns=ns, json.list)
-					}	
-				}	
-			}
-		}
- 	}
-
  	init <- Sys.time()	
 
 	url <- "https://userstream.twitter.com/1.1/user.json"
@@ -277,7 +177,6 @@ userStream <- function(file.name=NULL, with="followings", replies=NULL, track=NU
 		writefunction = write.tweets, timeout = timeout), error=function(e) e)
 
 	# housekeeping...
-	if (!is.null(ns)){mongo.disconnect(mongo)}	
 	if (!is.null(file.name)){ close(conn) }
 
 	# information messages
