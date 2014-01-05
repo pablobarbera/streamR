@@ -1,0 +1,17 @@
+2013-01-19 - version 0.1:
+   - Initial release
+2013-03-04 - version 0.1.1:
+   - Added URLEncode for non-ascii track strings
+   - Fixed parseTweets function to allow new coordinates structure in API 1.1
+2013-10-07 - version 0.2:
+   - Modified parseTweets function to make it faster and more complete
+   - Removed user/password http authentication
+   - Filter by language
+   - Better information messages (tweets and not kb)
+   - Introduced option to close connection after a specified number of tweets
+   - filterStream and userStream can now store tweets in mongoDB
+   - Introduced countTweets, getTweets, topRetweets that interact with mongoDB
+   - Other minor bugs
+2013-11-30 - version 0.2.1:
+   - Fixed bug in parseTweets function
+   - More informative tweet counts in filterStream
