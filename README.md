@@ -33,8 +33,8 @@ creating an application <a href="https://dev.twitter.com/apps/new">here</a>, and
 
 <pre><code class="r">library(ROAuth)
 requestURL &lt;- &quot;https://api.twitter.com/oauth/request_token&quot;
-accessURL &lt;- &quot;http://api.twitter.com/oauth/access_token&quot;
-authURL &lt;- &quot;http://api.twitter.com/oauth/authorize&quot;
+accessURL &lt;- &quot;https://api.twitter.com/oauth/access_token&quot;
+authURL &lt;- &quot;https://api.twitter.com/oauth/authorize&quot;
 consumerKey &lt;- &quot;xxxxxyyyyyzzzzzz&quot;
 consumerSecret &lt;- &quot;xxxxxxyyyyyzzzzzzz111111222222&quot;
 my_oauth &lt;- OAuthFactory$new(consumerKey = consumerKey, consumerSecret = consumerSecret, 
