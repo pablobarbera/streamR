@@ -102,8 +102,6 @@
 #'     consumerSecret=consumerSecret, requestURL=requestURL,
 #'     accessURL=accessURL, authURL=authURL)
 #'   my_oauth$handshake(cainfo = system.file("CurlSSL", "cacert.pem", package = "RCurl"))
-#'   filterStream( file="tweets_rstats.json",
-#'	   track="rstats", timeout=3600, oauth=my_oauth )
 #'
 #' ## capture 10 tweets mentioning the "Rstats" hashtag
 #'   filterStream( file.name="tweets_rstats.json", 
@@ -125,9 +123,9 @@
 #'
 
 filterStream <- function(file.name=NULL, track=NULL, follow=NULL, locations=NULL, language=NULL, 
-	timeout=0, tweets=NULL, oauth, verbose=TRUE)
+	timeout=0, tweets=NULL, oauth=NULL, verbose=TRUE)
 {
-
+    if(!is.null(oauth)){library(ROAuth)}
 	open.in.memory <- FALSE
    
   	# checking user input is correct
@@ -194,11 +192,12 @@ filterStream <- function(file.name=NULL, track=NULL, follow=NULL, locations=NULL
  	init <- Sys.time()
  	# connecting to Streaming API
 	url <- "https://stream.twitter.com/1.1/statuses/filter.json"
-	output <- tryCatch(oauth$OAuthRequest(URL=url, params=params, method="POST", 
-		customHeader=NULL, timeout = timeout, writefunction = write.tweets, 
-		cainfo=system.file("CurlSSL", "cacert.pem", package = "RCurl")), 
-			error=function(e) e)
-
+    if (!is.null(oauth)){
+    	output <- tryCatch(oauth$OAuthRequest(URL=url, params=params, method="POST", 
+    		customHeader=NULL, timeout = timeout, writefunction = write.tweets, 
+    		cainfo=system.file("CurlSSL", "cacert.pem", package = "RCurl")), 
+    			error=function(e) e)
+    }
 	# housekeeping...
 	if (!is.null(file.name)){ close(conn) }
 

@@ -4,7 +4,8 @@
 \usage{
   userStream(file.name = NULL, with = "followings",
     replies = NULL, track = NULL, locations = NULL,
-    timeout = 0, tweets = NULL, oauth, verbose = TRUE)
+    timeout = 0, tweets = NULL, oauth = NULL,
+    verbose = TRUE)
 }
 \arguments{
   \item{file.name}{string, name of the file where tweets

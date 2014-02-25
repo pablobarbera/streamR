@@ -9,9 +9,11 @@
    - Filter by language
    - Better information messages (tweets and not kb)
    - Introduced option to close connection after a specified number of tweets
-   - filterStream and userStream can now store tweets in mongoDB
-   - Introduced countTweets, getTweets, topRetweets that interact with mongoDB
    - Other minor bugs
 2013-11-30 - version 0.2.1:
    - Fixed bug in parseTweets function
    - More informative tweet counts in filterStream
+2013-01-05 - version 0.3:
+   - New CRAN release
+2013-01-07 - version 0.3.1:
+   - Fixed dependencies

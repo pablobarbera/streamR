@@ -5,7 +5,8 @@ match one or more filter predicates.}
 \usage{
   filterStream(file.name = NULL, track = NULL,
     follow = NULL, locations = NULL, language = NULL,
-    timeout = 0, tweets = NULL, oauth, verbose = TRUE)
+    timeout = 0, tweets = NULL, oauth = NULL,
+    verbose = TRUE)
 }
 \arguments{
   \item{file.name}{string, name of the file where tweets

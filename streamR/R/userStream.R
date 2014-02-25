@@ -100,8 +100,9 @@
 #'
 
 userStream <- function(file.name=NULL, with="followings", replies=NULL, track=NULL, 
-	locations=NULL, timeout=0, tweets=NULL, oauth, verbose=TRUE)
+	locations=NULL, timeout=0, tweets=NULL, oauth=NULL, verbose=TRUE)
 {
+	if(!is.null(oauth)){library(ROAuth)}
 	open.in.memory <- FALSE
    
 	# checking user input is correct
@@ -172,10 +173,11 @@ userStream <- function(file.name=NULL, with="followings", replies=NULL, track=NU
  	init <- Sys.time()	
 
 	url <- "https://userstream.twitter.com/1.1/user.json"
-	output <- tryCatch(oauth$OAuthRequest(URL=url, params=params, method="GET",
-		customHeader=NULL, cainfo=system.file("CurlSSL", "cacert.pem", package = "RCurl"), 
-		writefunction = write.tweets, timeout = timeout), error=function(e) e)
-
+	if (!is.null(oauth)){
+		output <- tryCatch(oauth$OAuthRequest(URL=url, params=params, method="GET",
+			customHeader=NULL, cainfo=system.file("CurlSSL", "cacert.pem", package = "RCurl"), 
+			writefunction = write.tweets, timeout = timeout), error=function(e) e)
+	}
 	# housekeeping...
 	if (!is.null(file.name)){ close(conn) }
 

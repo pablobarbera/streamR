@@ -71,6 +71,7 @@
 
 sampleStream <- function(file.name, timeout=0, tweets=NULL, oauth=NULL, verbose=TRUE)
 {
+    if(!is.null(oauth)){library(ROAuth)}
     open.in.memory <- FALSE
    # authentication
    if (is.null(oauth)) {
@@ -115,10 +116,11 @@ sampleStream <- function(file.name, timeout=0, tweets=NULL, oauth=NULL, verbose=
     init <- Sys.time()
     # connecting to Streaming API
 	url <- "https://stream.twitter.com/1.1/statuses/sample.json"
-	output <- tryCatch(oauth$OAuthRequest(URL=url, params=list(), method="POST",
-		customHeader=NULL, cainfo = system.file("CurlSSL", "cacert.pem", package = "RCurl"),
-		writefunction = write.tweets, timeout = timeout), error=function(e) e)
-
+    if (!is.null(oauth)){
+    	output <- tryCatch(oauth$OAuthRequest(URL=url, params=list(), method="POST",
+    		customHeader=NULL, cainfo = system.file("CurlSSL", "cacert.pem", package = "RCurl"),
+    		writefunction = write.tweets, timeout = timeout), error=function(e) e)
+    }
     # housekeeping...
     close(conn)
 
