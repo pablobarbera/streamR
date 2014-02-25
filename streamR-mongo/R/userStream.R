@@ -177,7 +177,9 @@ userStream <- function(file.name=NULL, with="followings", replies=NULL, track=NU
 				json.list <- fromJSON(x)
 				fields <- names(json.list)
 				if ('text' %in% fields){
-					names(json.list)[fields=="id_str"] <- "_id"
+					json.list[['_id']] <- json.list[['id_str']]
+    				json.list[['timestamp']] <- format.twitter.date(json.list[['created_at']])
+    				json.list[['random_number']] <- runif(1, 0, 1)
 					mongo.insert(mongo=mongo, ns=ns, json.list)
 				}	
 			}	
@@ -190,7 +192,9 @@ userStream <- function(file.name=NULL, with="followings", replies=NULL, track=NU
 					json.list <- fromJSON(x)
 					fields <- names(json.list)
 					if ('text' %in% fields){
-						names(json.list)[fields=="id_str"] <- "_id"
+						json.list[['_id']] <- json.list[['id_str']]
+    					json.list[['timestamp']] <- format.twitter.date(json.list[['created_at']])
+    					json.list[['random_number']] <- runif(1, 0, 1)
 						mongo.insert(mongo=mongo, ns=ns, json.list)
 					}	
 				}	
@@ -246,7 +250,9 @@ userStream <- function(file.name=NULL, with="followings", replies=NULL, track=NU
 				json.list <- fromJSON(x)
 				fields <- names(json.list)
 				if ('text' %in% fields){
-					names(json.list)[fields=="id_str"] <- "_id"
+					json.list[['_id']] <- json.list[['id_str']]
+    				json.list[['timestamp']] <- format.twitter.date(json.list[['created_at']])
+    				json.list[['random_number']] <- runif(1, 0, 1)
 					mongo.insert(mongo=mongo, ns=ns, json.list)
 				}	
 			}	
@@ -261,7 +267,9 @@ userStream <- function(file.name=NULL, with="followings", replies=NULL, track=NU
 					json.list <- fromJSON(x)
 					fields <- names(json.list)
 					if ('text' %in% fields){
-						names(json.list)[fields=="id_str"] <- "_id"
+						json.list[['_id']] <- json.list[['id_str']]
+    					json.list[['timestamp']] <- format.twitter.date(json.list[['created_at']])
+    					json.list[['random_number']] <- runif(1, 0, 1)
 						mongo.insert(mongo=mongo, ns=ns, json.list)
 					}	
 				}	

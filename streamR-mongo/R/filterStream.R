@@ -110,8 +110,6 @@
 #'     consumerSecret=consumerSecret, requestURL=requestURL,
 #'     accessURL=accessURL, authURL=authURL)
 #'   my_oauth$handshake(cainfo = system.file("CurlSSL", "cacert.pem", package = "RCurl"))
-#'   filterStream( file="tweets_rstats.json",
-#'	   track="rstats", timeout=3600, oauth=my_oauth )
 #'
 #' ## capture 10 tweets mentioning the "Rstats" hashtag
 #'   filterStream( file.name="tweets_rstats.json", 
@@ -200,7 +198,9 @@ filterStream <- function(file.name=NULL, track=NULL, follow=NULL, locations=NULL
 				json.list <- fromJSON(x)
 				fields <- names(json.list)
 				if ('text' %in% fields){
-					names(json.list)[fields=="id_str"] <- "_id"
+					json.list[['_id']] <- json.list[['id_str']]
+    				json.list[['timestamp']] <- format.twitter.date(json.list[['created_at']])
+    				json.list[['random_number']] <- runif(1, 0, 1)
 					mongo.insert(mongo=mongo, ns=ns, json.list)
 				}	
 			}	
@@ -213,7 +213,9 @@ filterStream <- function(file.name=NULL, track=NULL, follow=NULL, locations=NULL
 					json.list <- fromJSON(x)
 					fields <- names(json.list)
 					if ('text' %in% fields){
-						names(json.list)[fields=="id_str"] <- "_id"
+						json.list[['_id']] <- json.list[['id_str']]
+    					json.list[['timestamp']] <- format.twitter.date(json.list[['created_at']])
+    					json.list[['random_number']] <- runif(1, 0, 1)
 						mongo.insert(mongo=mongo, ns=ns, json.list)
 					}	
 				}	
@@ -269,7 +271,9 @@ filterStream <- function(file.name=NULL, track=NULL, follow=NULL, locations=NULL
 				json.list <- fromJSON(x)
 				fields <- names(json.list)
 				if ('text' %in% fields){
-					names(json.list)[fields=="id_str"] <- "_id"
+					json.list[['_id']] <- json.list[['id_str']]
+    				json.list[['timestamp']] <- format.twitter.date(json.list[['created_at']])
+    				json.list[['random_number']] <- runif(1, 0, 1)
 					mongo.insert(mongo=mongo, ns=ns, json.list)
 				}	
 			}	
@@ -284,7 +288,9 @@ filterStream <- function(file.name=NULL, track=NULL, follow=NULL, locations=NULL
 					json.list <- fromJSON(x)
 					fields <- names(json.list)
 					if ('text' %in% fields){
-						names(json.list)[fields=="id_str"] <- "_id"
+						json.list[['_id']] <- json.list[['id_str']]
+    					json.list[['timestamp']] <- format.twitter.date(json.list[['created_at']])
+    					json.list[['random_number']] <- runif(1, 0, 1)
 						mongo.insert(mongo=mongo, ns=ns, json.list)
 					}	
 				}	
