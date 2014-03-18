@@ -7,8 +7,8 @@
 #' @seealso \code{\link{filterStream}}, \code{\link{sampleStream}}, 
 #' \code{\link{userStream}}, \code{\link{readTweets}}, \code{\link{parseTweets}}
 #' \code{\link{getTweets}}, \code{\link{countTweets}}, \code{\link{topRetweets}}
-#' @name streamR-package
-#' @aliases streamR
+#' @name streamRmongo-package
+#' @aliases streamRmongo
 #' @docType package
 #' @author Pablo Barbera \email{pablo.barbera@@nyu.edu}
 #' @import RCurl rjson ROAuth

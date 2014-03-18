@@ -60,7 +60,7 @@ tweetsToMongo <- function(file.name=NULL, ns=NULL, host='localhost', username=""
 	if (!is.null(ns)){require(rmongodb)}
 	
 	## from json to list
-    results.list <- readTweets(tweets, verbose=FALSE)
+    results.list <- readTweets(file.name, verbose=FALSE)
 
     ## connecting to MongoDB
  	db <- strsplit(ns, "\\.")[[1]][1]

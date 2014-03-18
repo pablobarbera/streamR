@@ -144,8 +144,6 @@ match one or more filter predicates.}
     consumerSecret=consumerSecret, requestURL=requestURL,
     accessURL=accessURL, authURL=authURL)
   my_oauth$handshake(cainfo = system.file("CurlSSL", "cacert.pem", package = "RCurl"))
-  filterStream( file="tweets_rstats.json",
-	   track="rstats", timeout=3600, oauth=my_oauth )
 
 ## capture 10 tweets mentioning the "Rstats" hashtag
   filterStream( file.name="tweets_rstats.json",

@@ -1,9 +1,9 @@
-Package: streamR
+Package: streamRmongo
 Title: Access to Twitter Streaming API via R
 Description: This package provides a series of functions that allow R users
     to access Twitter's filter, sample, and user streams, and to
     parse the output into data frames or mongoDB.
-Version: 0.2
+Version: 0.3.1
 Author: Pablo Barbera <pablo.barbera@nyu.edu>
 Maintainer: Pablo Barbera <pablo.barbera@nyu.edu>
 Depends:
@@ -24,3 +24,4 @@ Collate:
     'topRetweets.R'
     'getTweets.R'
     'readTweets.R'
+    'tweets-to-mongo.R'
