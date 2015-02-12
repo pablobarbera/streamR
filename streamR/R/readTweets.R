@@ -65,7 +65,8 @@ readTweets <- function(tweets, verbose=TRUE){
     results.list <- lapply(lines[nchar(lines)>0], function(x) tryCatch(fromJSON(x), error=function(e) e))
 
     ## removing lines that do not contain tweets or were not properly parsed
-    errors <- which(unlist(lapply(results.list, length))<18)
+    #errors <- which(unlist(lapply(results.list, length))<18)
+    errors <- which(unlist(lapply(results.list, function(x) 'id' %in% names(x) == FALSE)))
     if (length(errors)>0){
         results.list <- results.list[-errors]
     }
