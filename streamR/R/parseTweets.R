@@ -33,6 +33,10 @@
 #' To parse json to a twitter list, see \code{\link{readTweets}}. That function can be significantly
 #' faster for large files, when only a few fields are required.
 #'
+#' Note also that the \code{retweet_count} field contains the number of times a given tweet
+#' was retweeted at the time it was captured from the API, or for automatic retweets the number
+#' of times the original tweet was retweeted.
+#'
 #' @seealso \code{\link{filterStream}}, \code{\link{sampleStream}}, \code{\link{userStream}}
 #'
 #' @examples 
@@ -81,7 +85,7 @@ parseTweets <- function(tweets, simplify=FALSE, verbose=TRUE){
     # constructing data frame with tweet and user variable
     df <- data.frame(
         text = unlistWithNA(results.list, 'text'),
-        retweet_count = unlistWithNA(results.list, c('retweeted_status', 'retweet_count')),
+        retweet_count = unlistWithNA(results.list, 'retweet_count'),
         favorited = unlistWithNA(results.list, 'favorited'),
         truncated = unlistWithNA(results.list, 'truncated'),
         id_str = unlistWithNA(results.list, 'id_str'),
@@ -111,9 +115,6 @@ parseTweets <- function(tweets, simplify=FALSE, verbose=TRUE){
         friends_count = unlistWithNA(results.list, c('user', 'friends_count')),
         screen_name = unlistWithNA(results.list, c('user', 'screen_name')),
         stringsAsFactors=F)
-
-    # retweet_count is extracted from retweeted_status. If this is not a RT, set to zero
-    df$retweet_count[is.na(df$retweet_count)] <- 0
 
     # adding geographic variables and url entities
     if (simplify==FALSE){
