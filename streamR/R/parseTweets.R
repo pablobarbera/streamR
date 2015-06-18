@@ -86,6 +86,7 @@ parseTweets <- function(tweets, simplify=FALSE, verbose=TRUE){
     df <- data.frame(
         text = unlistWithNA(results.list, 'text'),
         retweet_count = unlistWithNA(results.list, 'retweet_count'),
+        favorite_count = unlistWithNA(results.list, 'favorite_count'),
         favorited = unlistWithNA(results.list, 'favorited'),
         truncated = unlistWithNA(results.list, 'truncated'),
         id_str = unlistWithNA(results.list, 'id_str'),
