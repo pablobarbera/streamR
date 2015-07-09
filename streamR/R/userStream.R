@@ -92,7 +92,12 @@
 #'     consumerSecret=consumerSecret, requestURL=requestURL,
 #'     accessURL=accessURL, authURL=authURL)
 #'  my_oauth$handshake(cainfo = system.file("CurlSSL", "cacert.pem", package = "RCurl"))
-#'  save(my_oauth, file="my_oauth")
+#'
+#' ## Alternatively, it is also possible to create a token without the handshake:
+#'  accessToken <- 'zzzzzzzzzzzzzzzzhhhhhhh'
+#'  accessTokenSecret <- '1234567aaa'
+#'  my_oauth <- createOAUthToken(consumerKey, consumerSecret, accessToken, accessTokenSecret)
+#"
 #' ## Capturing 10 tweets from a user's timeline
 #'  userStream( file.name="my_timeline.json", with="followings",
 #'      tweets=10, oauth=my_oauth )

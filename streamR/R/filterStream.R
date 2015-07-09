@@ -103,6 +103,11 @@
 #'     accessURL=accessURL, authURL=authURL)
 #'   my_oauth$handshake(cainfo = system.file("CurlSSL", "cacert.pem", package = "RCurl"))
 #'
+#' ## Alternatively, it is also possible to create a token without the handshake:
+#'  accessToken <- 'zzzzzzzzzzzzzzzzhhhhhhh'
+#'  accessTokenSecret <- '1234567aaa'
+#'  my_oauth <- createOAUthToken(consumerKey, consumerSecret, accessToken, accessTokenSecret)
+#'
 #' ## capture 10 tweets mentioning the "Rstats" hashtag
 #'   filterStream( file.name="tweets_rstats.json", 
 #'      track="rstats", tweets=10, oauth=my_oauth )
@@ -235,4 +240,31 @@ buildArgList <- function(track=NULL, follow=NULL, language=NULL, locations=NULL,
 	if (!is.null(with)) params[["with"]] <- paste(as.character(with), collapse=",")
 	if (!is.null(replies)) params[["replies"]] <- paste(as.character(replies), collapse=",")
 	return(params)
+}
+
+
+#' @rdname createOAuthToken
+#' @export
+#'
+#' @title 
+#' Create OAuth token without handshake.
+#'
+#' @details
+#' This function generates a OAuth token using the consumer key, consumer secret,
+#' access token and access token secret available in the "Keys and Access Token"
+#' tab of the "Application Management" website on Twitter's developers website.
+
+
+createOAuthToken <- function(consumerKey, consumerSecret, accessToken, accessTokenSecret){
+	my_oauth <- ROAuth::OAuthFactory$new(consumerKey=consumerKey,
+					consumerSecret=consumerSecret,
+					oauthKey=accessToken,
+					oauthSecret=accessTokenSecret,
+					needsVerifier=FALSE, handshakeComplete=TRUE,
+					verifier="1",
+					requestURL="https://api.twitter.com/oauth/request_token",
+					authURL="https://api.twitter.com/oauth/authorize",
+					accessURL="https://api.twitter.com/oauth/access_token",
+					signMethod="HMAC")
+	return(my_oauth)
 }

@@ -64,6 +64,12 @@
 #'     consumerSecret=consumerSecret, requestURL=requestURL,
 #'     accessURL=accessURL, authURL=authURL)
 #'  my_oauth$handshake(cainfo = system.file("CurlSSL", "cacert.pem", package = "RCurl"))
+#'
+#' ## Alternatively, it is also possible to create a token without the handshake:
+#'  accessToken <- 'zzzzzzzzzzzzzzzzhhhhhhh'
+#'  accessTokenSecret <- '1234567aaa'
+#'  my_oauth <- createOAUthToken(consumerKey, consumerSecret, accessToken, accessTokenSecret)
+#'
 #'  sampleStream( file.name="tweets_sample.json", oauth=my_oauth )
 #'
 #' }
