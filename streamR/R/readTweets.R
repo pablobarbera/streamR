@@ -64,11 +64,17 @@ readTweets <- function(tweets, verbose=TRUE){
 
     results.list <- lapply(lines[nchar(lines)>0], function(x) tryCatch(fromJSON(x), error=function(e) e))
 
+    ## check if JSON file is coming from search endpoint instead of API
+    search <- 'search_metadata' %in% names(results.list[[1]])
+    if (search) results.list <- results.list[[1]]$statuses
+
     ## removing lines that do not contain tweets or were not properly parsed
     #errors <- which(unlist(lapply(results.list, length))<18)
-    errors <- which(unlist(lapply(results.list, function(x) 'id' %in% names(x) == FALSE)))
-    if (length(errors)>0){
-        results.list <- results.list[-errors]
+    if (!search){
+        errors <- which(unlist(lapply(results.list, function(x) 'id' %in% names(x) == FALSE)))
+        if (length(errors)>0){
+            results.list <- results.list[-errors]
+        }        
     }
               
     # information message
