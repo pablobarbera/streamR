@@ -56,11 +56,13 @@ readTweets <- function(tweets, verbose=TRUE){
 
     ## Read the text file and save it in memory as a list           
     if (length(tweets)==1 && file.exists(tweets)){
-        lines <- readLines(tweets, encoding="UTF-8")
+        lines <- readLines(tweets)
     }       
     else {
         lines <- tweets
     }
+    ## Converting to UTF-8
+    lines <- iconv(lines, "ASCII", "UTF-8", sub="")
 
     results.list <- lapply(lines[nchar(lines)>0], function(x) tryCatch(fromJSON(x), error=function(e) e))
 
