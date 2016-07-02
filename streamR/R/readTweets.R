@@ -80,7 +80,7 @@ readTweets <- function(tweets, verbose=TRUE){
     }
               
     # information message
-    if (verbose==TRUE) message(length(results.list), " tweets have been parsed.", "\n")
+    if (verbose==TRUE) message(length(results.list), " tweets have been parsed.")
     return(results.list)
 }
 

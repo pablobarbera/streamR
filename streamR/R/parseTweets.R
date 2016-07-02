@@ -141,7 +141,7 @@ parseTweets <- function(tweets, simplify=FALSE, verbose=TRUE){
     }
 
     # information message
-    if (verbose==TRUE) message(length(df$text), " tweets have been parsed.", "\n")
+    if (verbose==TRUE) message(length(df$text), " tweets have been parsed.")
     return(df)
 }
 
