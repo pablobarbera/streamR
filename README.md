@@ -9,7 +9,7 @@ streamR: Access to Twitter Streaming API via R
 
 This package includes a series of functions that give R users access to Twitter&#39;s <a href="https://dev.twitter.com/docs/streaming-apis">Streaming API</a>, as well as a tool that parses the captured tweets and transforms them in R data frames, which can then be used in subsequent analyses. <code>streamR</code> requires authentication via OAuth and the <code>ROAuth</code> package.</p>
 
-Current CRAN release is 0.2. To install the most updated version (0.2) from GitHub, type:
+Current CRAN release is 0.2.1. To install the most updated version (0.2.1) from GitHub, type:
 
 ```
 library(devtools)
