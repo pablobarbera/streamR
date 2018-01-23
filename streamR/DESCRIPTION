@@ -20,3 +20,4 @@ Collate:
     'userStream.R'
     'streamR-package.R'
     'readTweets.R'
+RoxygenNote: 6.0.1
