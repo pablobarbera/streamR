@@ -6,7 +6,16 @@
 \usage{
 createOAuthToken(consumerKey, consumerSecret, accessToken, accessTokenSecret)
 }
-\details{
+\arguments{
+\item{consumerKey}{Consumer key for OAuth token}
+
+\item{consumerSecret}{Consumer secret for OAuth token}
+
+\item{accessToken}{Access token for OAuth token}
+
+\item{accessTokenSecret}{Access token secret for OAuth token}
+}
+\description{
 This function generates a OAuth token using the consumer key, consumer secret,
 access token and access token secret available in the "Keys and Access Token"
 tab of the "Application Management" website on Twitter's developers website.

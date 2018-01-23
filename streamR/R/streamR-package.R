@@ -10,7 +10,7 @@
 #' @aliases streamR
 #' @docType package
 #' @author Pablo Barbera \email{pablo.barbera@@nyu.edu}
-#' @import RCurl rjson
+#' @import RCurl rjson ndjson
 NULL
 
 #' Ten sample tweets published by @@twitterapi

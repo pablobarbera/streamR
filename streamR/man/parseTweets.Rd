@@ -4,7 +4,7 @@
 \alias{parseTweets}
 \title{Converts tweets in JSON format to data frame.}
 \usage{
-parseTweets(tweets, simplify = FALSE, verbose = TRUE)
+parseTweets(tweets, simplify = FALSE, verbose = TRUE, legacy = FALSE)
 }
 \arguments{
 \item{tweets}{A character string naming the file where tweets are stored or the
@@ -15,6 +15,9 @@ fields (i.e., no geographic information or url entities).}
 
 \item{verbose}{logical, default is \code{TRUE}, which will print in the console
 the number of tweets that have been parsed.}
+
+\item{legacy}{logical, default is \code{FALSE}. Read tweets using old method (reading lines into memory and parsing
+line by line). Try using \code{legacy=TRUE} if getting errors with default options.}
 }
 \description{
 This function parses tweets downloaded using \code{filterStream}, 
@@ -43,7 +46,7 @@ of times the original tweet was retweeted.
 ## into a data frame that can be manipulated by other functions.
 
 data(example_tweets)
-tweets.df <- parseTweets(example_tweets, simplify=TRUE)
+tweets.df <- parseTweets(example_tweets, simplify=TRUE, legacy=TRUE)
 
 \dontrun{
 ## A more complete example, that shows how to capture a user's home timeline

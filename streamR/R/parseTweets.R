@@ -19,6 +19,9 @@
 #'
 #' @param verbose logical, default is \code{TRUE}, which will print in the console
 #' the number of tweets that have been parsed.
+#' 
+#' @param legacy logical, default is \code{FALSE}. Read tweets using old method (reading lines into memory and parsing
+#' line by line). Try using \code{legacy=TRUE} if getting errors with default options.
 #'
 #' @details
 #' \code{parseTweets} parses tweets downloaded using the \code{\link{filterStream}},
@@ -45,7 +48,7 @@
 #' ## into a data frame that can be manipulated by other functions.
 #'
 #' data(example_tweets)
-#' tweets.df <- parseTweets(example_tweets, simplify=TRUE)
+#' tweets.df <- parseTweets(example_tweets, simplify=TRUE, legacy=TRUE)
 #' 
 #' \dontrun{
 #' ## A more complete example, that shows how to capture a user's home timeline
@@ -71,8 +74,109 @@
 #' 
 #'
 
-parseTweets <- function(tweets, simplify=FALSE, verbose=TRUE){
+parseTweets <- function(tweets, simplify=FALSE, verbose=TRUE, legacy=FALSE){
     
+  if (!legacy){
+    results <- stream_in(tweets)
+    
+    retweet_count <- rep(NA, length(results$text))
+    if (!is.null(results$retweeted_status.retweet_count)){
+      retweet_count <- ifelse(!is.na(results$retweeted_status.retweet_count),
+                              results$retweeted_status.retweet_count, results$retweet_count)
+    }                         
+    
+    favorite_count <- rep(NA, length(results$text))
+    if (!is.null(results$retweeted_status.favorite_count)){
+      favorite_count <- ifelse(!is.na(results$retweeted_status.favorite_count),
+              results$retweeted_status.favorite_count, results$favorite_count)
+    }      
+    
+    df <- data.frame(
+      text = results$text,
+      retweet_count = retweet_count,
+      favorite_count = favorite_count,
+      favorited = results$favorited,
+      truncated = results$truncated,
+      id_str = results$id_str,
+      in_reply_to_screen_name = results$in_reply_to_screen_name,
+      source = results$source,
+      retweeted = results$retweeted,
+      created_at = results$created_at,
+      in_reply_to_status_id_str = results$in_reply_to_status_id_str,
+      in_reply_to_user_id_str = results$in_reply_to_user_id_str,
+      lang = results$lang,
+      listed_count = results$user.listed_count,
+      verified = results$user.verified,
+      location = results$user.location,
+      user_id_str = results$user.id_str,
+      description = results$user.description,
+      geo_enabled = results$user.geo_enabled,
+      user_created_at = results$user.created_at,
+      statuses_count = results$user.statuses_count,
+      followers_count = results$user.followers_count,
+      favourites_count = results$user.favourites_count,
+      protected = results$user.protected,
+      user_url = results$user.url,
+      name = results$user.name,
+      time_zone = results$user.time_zone,
+      user_lang = results$user.lang,
+      utc_offset = results$user.utc_offset,
+      friends_count = results$user.friends_count,
+      screen_name = results$user.screen_name,
+      stringsAsFactors=F)
+    
+    # adding geographic variables and url entities
+    if (simplify==FALSE){
+      df$country_code <- NA
+      if (!is.null(results$place.country_code)) df$country_code <- results$place.country_code 
+      df$country <- NA
+      if (!is.null(results$place.country)) df$country <- results$place.country
+      df$place_type <- NA
+      if (!is.null(results$place.type)) df$place_type <- results$place.type
+      df$full_name <- NA
+      if (!is.null(results$place.full_name)) df$full_name <- results$place.full_name
+      df$place_name <- NA
+      if (!is.null(results$place.name)) df$place_name <- results$place.name
+      df$place_id <- NA
+      if (!is.null(results$place.id)) df$place_id <- results$place.id
+      place_lat_1 <- rep(NA, nrow(df))
+      if (!is.null(results$place.bounding_box.coordinates.0.0.1)){
+        place_lat_1 <- results$place.bounding_box.coordinates.0.0.1
+      }
+      place_lat_2 <- rep(NA, nrow(df))
+      if (!is.null(results$place.bounding_box.coordinates.0.1.1)){
+        place_lat_2 <- results$place.bounding_box.coordinates.0.1.1
+      }
+      df$place_lat <- sapply(1:nrow(df), function(x) 
+        mean(c(place_lat_1[x], place_lat_2[x]), na.rm=TRUE))
+      place_lon_1 <- rep(NA, nrow(df))
+      if (!is.null(results$place.bounding_box.coordinates.0.0.0)){
+        place_lon_1 <- results$place.bounding_box.coordinates.0.0.0
+      }
+      place_lon_2 <- rep(NA, nrow(df))
+      if (!is.null(results$place.bounding_box.coordinates.0.2.0)){
+        place_lon_2 <- results$place.bounding_box.coordinates.0.2.0
+      }
+      df$place_lon <- sapply(1:nrow(df), function(x) 
+        mean(c(place_lon_1[x], place_lon_2[x]), na.rm=TRUE))      
+      df$lat <- NA
+      if (!is.null(results$geo.coordinates.0)) df$lat <- results$geo.coordinates.0
+      df$lon <- NA
+      if (!is.null(results$geo.coordinates.1)) df$lon <- results$geo.coordinates.1
+      df$expanded_url <- NA
+      if (!is.null(results$entities.urls.0.expanded_url)){
+        df$expanded_url <- results$entities.urls.0.expanded_url
+      } 
+      df$url <- NA
+      if (!is.null(results$entities.urls.0.url)){
+        df$url <- results$entities.urls.0.url
+      } 
+    }
+
+  }
+  
+  if (legacy){
+  
     ## from json to list
     results.list <- readTweets(tweets, verbose=FALSE)
 
@@ -140,6 +244,8 @@ parseTweets <- function(tweets, simplify=FALSE, verbose=TRUE){
 
     }
 
+  }
+  
     # information message
     if (verbose==TRUE) message(length(df$text), " tweets have been parsed.")
     return(df)

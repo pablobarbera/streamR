@@ -79,10 +79,9 @@
 #' (default), the connection will be open for the number of seconds specified in \code{timeout}
 #' parameter.
 #'
-#' @param oauth an object of class \code{oauth} that contains the access tokens
-#' to the user's twitter session. This is currently the only method for authentication. 
+#' @param oauth an object of class \code{oauth} that contains the access token
+#' to the user's twitter session OR a list with details to create a new access token.
 #' See examples for more details.
-#'
 #'
 #' @param verbose logical, default is \code{TRUE}, which generates some output to the
 #' R console with information about the capturing process.
@@ -104,9 +103,10 @@
 #'   my_oauth$handshake(cainfo = system.file("CurlSSL", "cacert.pem", package = "RCurl"))
 #'
 #' ## Alternatively, it is also possible to create a token without the handshake:
-#'  accessToken <- 'zzzzzzzzzzzzzzzzhhhhhhh'
-#'  accessTokenSecret <- '1234567aaa'
-#'  my_oauth <- createOAUthToken(consumerKey, consumerSecret, accessToken, accessTokenSecret)
+#'  my_oauth <- list(consumer_key = "CONSUMER_KEY",
+#'    consumer_secret = "CONSUMER_SECRET",
+#'    access_token="ACCESS_TOKEN",
+#'    access_token_secret = "ACCESS_TOKEN_SECRET")
 #'
 #' ## capture 10 tweets mentioning the "Rstats" hashtag
 #'   filterStream( file.name="tweets_rstats.json", 
@@ -130,7 +130,6 @@
 filterStream <- function(file.name=NULL, track=NULL, follow=NULL, locations=NULL, language=NULL, 
 	timeout=0, tweets=NULL, oauth=NULL, verbose=TRUE)
 {
-    if(!is.null(oauth)){library(ROAuth)}
 	open.in.memory <- FALSE
    
   	# checking user input is correct
@@ -153,6 +152,12 @@ filterStream <- function(file.name=NULL, track=NULL, follow=NULL, locations=NULL
     stop("No authentication method was provided. 
    		Please use an OAuth token.") }
    if (!is.null(oauth)){
+    if (is.list(oauth)){
+      oauth <- createOAuthToken(consumerKey=oauth$consumer_key, 
+                                consumerSecret=oauth$consumer_secret, 
+                                accessToken=oauth$access_token, 
+                                accessTokenSecret=oauth$access_token_secret)
+    }
    	if (!inherits(oauth, "OAuth")) {
    			stop("oauth argument must be of class OAuth") }
   		if (!oauth$handshakeComplete) {
@@ -249,11 +254,16 @@ buildArgList <- function(track=NULL, follow=NULL, language=NULL, locations=NULL,
 #' @title 
 #' Create OAuth token without handshake.
 #'
-#' @details
+#' @description
 #' This function generates a OAuth token using the consumer key, consumer secret,
 #' access token and access token secret available in the "Keys and Access Token"
 #' tab of the "Application Management" website on Twitter's developers website.
-
+#'
+#' @param consumerKey Consumer key for OAuth token
+#' @param consumerSecret Consumer secret for OAuth token
+#' @param accessToken Access token for OAuth token
+#' @param accessTokenSecret Access token secret for OAuth token
+#'
 
 createOAuthToken <- function(consumerKey, consumerSecret, accessToken, accessTokenSecret){
 	my_oauth <- ROAuth::OAuthFactory$new(consumerKey=consumerKey,

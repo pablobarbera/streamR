@@ -46,9 +46,9 @@ After that number of tweets have been captured, function will stop. If set to \c
 (default), the connection will be open for the number of seconds specified in \code{timeout}
 parameter.}
 
-\item{oauth}{an object of class \code{oauth} that contains the access tokens
-to the user's twitter session. This is the only method for authentication available
-for user streams. See examples for more details.}
+\item{oauth}{an object of class \code{oauth} that contains the access token
+to the user's twitter session OR a list with details to create a new access token.
+See examples for more details.}
 
 \item{verbose}{logical, default is \code{TRUE}, which generates some output to the
 R console with information about the capturing process.}
@@ -94,9 +94,11 @@ is closed.
  my_oauth$handshake(cainfo = system.file("CurlSSL", "cacert.pem", package = "RCurl"))
 
 ## Alternatively, it is also possible to create a token without the handshake:
- accessToken <- 'zzzzzzzzzzzzzzzzhhhhhhh'
- accessTokenSecret <- '1234567aaa'
- my_oauth <- createOAUthToken(consumerKey, consumerSecret, accessToken, accessTokenSecret)
+ my_oauth <- list(consumer_key = "CONSUMER_KEY",
+   consumer_secret = "CONSUMER_SECRET",
+   access_token="ACCESS_TOKEN",
+   access_token_secret = "ACCESS_TOKEN_SECRET")
+
 ## Capturing 10 tweets from a user's timeline
  userStream( file.name="my_timeline.json", with="followings",
      tweets=10, oauth=my_oauth )

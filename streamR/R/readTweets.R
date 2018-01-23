@@ -16,7 +16,7 @@
 #'
 #' @param verbose logical, default is \code{TRUE}, which will print in the console
 #' the number of tweets that have been parsed.
-#'
+#' 
 #' @details
 #' This function is the first step in the \code{\link{parseTweets}} function and
 #' is provided now as an independent function for convenience purposes. In cases

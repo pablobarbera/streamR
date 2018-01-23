@@ -19,3 +19,6 @@
    - Fixed dependencies
 2015-07-09 - version 0.3.2:
    - createOAuthToken does not require handshake   
+2018-01-23 - version 0.4.0:
+   - filterStream and others can create token automatically from list
+   - parseTweets now uses ndjson to parse tweets faster
