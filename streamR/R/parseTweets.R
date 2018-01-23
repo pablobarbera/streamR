@@ -100,7 +100,7 @@ parseTweets <- function(tweets, simplify=FALSE, verbose=TRUE, legacy=FALSE){
       id_str = results$id_str,
       in_reply_to_screen_name = results$in_reply_to_screen_name,
       source = results$source,
-      retweeted = results$retweeted,
+      retweeted = results[[grep("retweeted", names(results))[1]]],
       created_at = results$created_at,
       in_reply_to_status_id_str = results$in_reply_to_status_id_str,
       in_reply_to_user_id_str = results$in_reply_to_user_id_str,
