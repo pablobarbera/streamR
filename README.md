@@ -3,11 +3,11 @@ streamR: Access to Twitter Streaming API via R
 
 This package includes a series of functions that give R users access to Twitter&#39;s <a href="https://dev.twitter.com/docs/streaming-apis">Streaming API</a>, as well as a tool that parses the captured tweets and transforms them in R data frames, which can then be used in subsequent analyses. <code>streamR</code> requires authentication via OAuth and the <code>ROAuth</code> package.</p>
 
-Current CRAN release is 0.2.1. To install the most updated version (0.2.1) from GitHub, type:
+Current CRAN release is 0.2.1. To install the most updated version (0.4.0) from GitHub, type:
 
 ```
 library(devtools)
-install_github("streamR", "pablobarbera", subdir="streamR")
+devtools::install_github("pablobarbera/streamR/streamR")
 ```
 
 Click <a href="http://github.com/pablobarbera/streamR/blob/master/streamR-manual.pdf?raw=true">here</a> to read the documentation and <a href="http://pablobarbera.com/blog/archives/1.html">here</a> to read the vignette.
@@ -16,29 +16,35 @@ Click <a href="http://github.com/pablobarbera/streamR/blob/master/streamR-manual
 
 <p>streamR can be installed directly from CRAN, but the most updated version <a href="https://github.com/pablobarbera/streamR">will always be on GitHub</a>. The code below shows how to install from both sources.</p>
 
-<pre><code class="r">install.packages(&quot;streamR&quot;)  # from CRAN
-library(devtools)
-install_github(&quot;streamR&quot;, &quot;pablobarbera&quot;, subdir = &quot;streamR&quot;)  # from GitHub
-</code></pre>
-
+```
+install.packages("streamR")  # from CRAN
+devtools::install_github("pablobarbera/streamR/streamR") # from GitHub
+```
 
 <p><code>streamR</code> requires authentication via OAuth. The same oauth token can be used for both <code>twitteR</code> and <code>streamR</code>. After 
 creating an application <a href="https://dev.twitter.com/apps/new">here</a>, and obtaining the consumer key and consumer secret, it is easy to create your own oauth credentials using the <code>ROAuth</code> package, which can be saved in disk for future sessions:</p>
 
-<pre><code class="r">library(ROAuth)
-requestURL &lt;- &quot;https://api.twitter.com/oauth/request_token&quot;
-accessURL &lt;- &quot;https://api.twitter.com/oauth/access_token&quot;
-authURL &lt;- &quot;https://api.twitter.com/oauth/authorize&quot;
-consumerKey &lt;- &quot;xxxxxyyyyyzzzzzz&quot;
-consumerSecret &lt;- &quot;xxxxxxyyyyyzzzzzzz111111222222&quot;
-my_oauth &lt;- OAuthFactory$new(consumerKey = consumerKey, consumerSecret = consumerSecret, 
+```
+library(ROAuth)
+requestURL <- "https://api.twitter.com/oauth/request_token"
+accessURL <- "https://api.twitter.com/oauth/access_token"
+authURL <- "https://api.twitter.com/oauth/authorize"
+consumerKey <- "xxxxxyyyyyzzzzzz"
+consumerSecret <- "xxxxxxyyyyyzzzzzzz111111222222"
+my_oauth <- OAuthFactory$new(consumerKey = consumerKey, consumerSecret = consumerSecret, 
     requestURL = requestURL, accessURL = accessURL, authURL = authURL)
-my_oauth$handshake(cainfo = system.file(&quot;CurlSSL&quot;, &quot;cacert.pem&quot;, package = &quot;RCurl&quot;))
-save(my_oauth, file = &quot;my_oauth.Rdata&quot;)
-</code></pre>
+my_oauth$handshake(cainfo = system.file("CurlSSL", "cacert.pem", package = "RCurl"))
+save(my_oauth, file = "my_oauth.Rdata")
+```
 
+Alternatively, you can also create an access token as a list and <code>streamR</code> will automatically do the handshake:
 
-
+```
+ my_oauth <- list(consumer_key = "CONSUMER_KEY",
+   consumer_secret = "CONSUMER_SECRET",
+   access_token="ACCESS_TOKEN",
+   access_token_secret = "ACCESS_TOKEN_SECRET")
+```
 
 <h3>filterStream</h3>
 
