@@ -25,3 +25,5 @@
 2018-05-16 - version 0.4.1:
    - removed break outside loop
    - fixed broken URLs in docs
+2018-05-17 - version 0.4.2:
+   - fixed issue with reverse dependencies

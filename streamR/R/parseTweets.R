@@ -75,6 +75,11 @@
 #'
 
 parseTweets <- function(tweets, simplify=FALSE, verbose=TRUE, legacy=FALSE){
+  
+  # if tweets is not a file or an object, try legacy mode
+  if (!file.exists(tweets[1]) & !exists(tweets[1])){
+    legacy <- TRUE
+  }
     
   if (!legacy){
     results <- stream_in(tweets)
