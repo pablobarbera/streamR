@@ -12,7 +12,7 @@
 #'
 #' @details
 #' For more information, check the documentation at:
-#' \url{https://dev.twitter.com/docs/api/1.1/get/statuses/sample}
+#' \url{https://developer.twitter.com/en/docs/tweets/sample-realtime/overview/GET_statuse_sample}
 #'
 #' Note that when no file name is provided, tweets are written to a temporary file, 
 #' which is loaded in memory as a string vector when the connection to the stream
@@ -116,12 +116,14 @@ sampleStream <- function(file.name, timeout=0, tweets=NULL, oauth=NULL, verbose=
     } 
     if (!is.null(tweets) && is.numeric(tweets) && tweets>0){    
         write.tweets <- function(x){    
-            if (i>=tweets){break}   
-            # writes output of stream to a file 
-            if (nchar(x)>0) {   
-                i <<- i + 1 
-                writeLines(x, conn, sep="") 
-            }   
+          while (i<=tweets){
+            # writes output of stream to a file	
+            if (nchar(x)>0) {	
+              i <<- i + 1	
+              writeLines(x, conn, sep="")	
+            }	
+          }
+          
         }
     }  	
 

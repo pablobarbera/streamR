@@ -37,7 +37,7 @@ at any given time.
 }
 \details{
 For more information, check the documentation at:
-\url{https://dev.twitter.com/docs/api/1.1/get/statuses/sample}
+\url{https://developer.twitter.com/en/docs/tweets/sample-realtime/overview/GET_statuse_sample}
 
 Note that when no file name is provided, tweets are written to a temporary file, 
 which is loaded in memory as a string vector when the connection to the stream

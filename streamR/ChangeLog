@@ -22,3 +22,6 @@
 2018-01-23 - version 0.4.0:
    - filterStream and others can create token automatically from list
    - parseTweets now uses ndjson to parse tweets faster
+2018-05-16 - version 0.4.1:
+   - removed break outside loop
+   - fixed broken URLs in docs

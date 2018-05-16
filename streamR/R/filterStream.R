@@ -24,7 +24,7 @@
 #' parameters. In the fourth example below, we capture all tweets containing the term
 #' rstats (even non-geolocated tweets) OR coming from the New York City area. For more
 #' information on how the Streaming API request parameters work, check the
-#' documentation at: \url{http://dev.twitter.com/docs/streaming-apis/parameters}.
+#' documentation at: \url{https://developer.twitter.com/en/docs/tweets/filter-realtime/guides/basic-stream-parameters}.
 #'
 #' Also note that the \code{language} parameter needs to be used in combination
 #' with another filter option (either keywords or location).
@@ -50,24 +50,20 @@
 #' If the file already exists, tweets will be appended (not overwritten).
 #'
 #' @param track string or string vector containing keywords to track.
-#' See the \code{track} parameter information in the Streaming API documentation for details:
-#' \url{http://dev.twitter.com/docs/streaming-apis/parameters#track}.
+#' See the \code{track} parameter information in the Streaming API documentation for details.
 #'
 #' @param follow string or numeric, vector of Twitter user IDs, indicating the users whose public
 #' statuses should be delivered on the stream. See the \code{follow} parameter information
-#' in the Streaming API documentation for details:
-#' \url{http://dev.twitter.com/docs/streaming-apis/parameters#follow}.
+#' in the Streaming API documentation for details.
 #'
 #' @param locations numeric, a vector of longitude, latitude pairs (with the southwest corner
 #' coming first) specifying sets of bounding boxes to filter public statuses by. 
-#' See the \code{locations} parameter information in the Streaming API documentation for details:
-#' \url{http://dev.twitter.com/docs/streaming-apis/parameters#locations}
+#' See the \code{locations} parameter information in the Streaming API documentation for details.
 #'
 #' @param language string or string vector containing a list of BCP 47 language identifiers.
 #' If not \code{NULL} (default), function will only return tweets that have been detected
 #' as being written in the specified languages. Note that this parameter can only be used
-#' in combination with any of the other filter parameters. See documentation for details:
-#' \url{https://dev.twitter.com/docs/streaming-apis/parameters#language}
+#' in combination with any of the other filter parameters. See documentation for details.
 #' 
 #' @param timeout numeric, maximum length of time (in seconds) of connection to stream.
 #' The connection will be automatically closed after this period. For example, setting
@@ -188,12 +184,13 @@ filterStream <- function(file.name=NULL, track=NULL, follow=NULL, locations=NULL
 		} 
 		if (!is.null(tweets) && is.numeric(tweets) && tweets>0){	
 			write.tweets <- function(x){	
-				if (i>=tweets){break}	
+				while (i<=tweets){
 				# writes output of stream to a file	
-				if (nchar(x)>0) {	
-					i <<- i + 1	
-					writeLines(x, conn, sep="")	
-				}	
+				  if (nchar(x)>0) {	
+					  i <<- i + 1	
+					  writeLines(x, conn, sep="")	
+				  }	
+				}
 			}
 		}  
  	}

@@ -41,23 +41,23 @@
 #' user.
 #'
 #' See the \code{with} parameter information in the Streaming API documentation for details:
-#' \url{https://dev.twitter.com/docs/streaming-apis/parameters#with}
+#' \url{https://developer.twitter.com/en/docs/tweets/filter-realtime/guides/basic-stream-parameters}
 #'
 #' @param replies string, default is \code{NULL}, which will only stream replies sent by
 #' a different user if the authenticated user follows the receiver of the reply. All replies
 #' to users that the authenticated user follows will be included if this argument is set to "all".
 #'
 #' See the \code{replies} parameter information in the Streaming API documentation for details:
-#' \url{https://dev.twitter.com/docs/streaming-apis/parameters#replies}
+#' \url{https://developer.twitter.com/en/docs/tweets/filter-realtime/guides/basic-stream-parameters}
 #'
 #' @param track string or string vector containing keywords to track.
 #' See the track parameter information in the Streaming API documentation for details:
-#' \url{http://dev.twitter.com/docs/streaming-apis/parameters#track}.
+#' \url{https://developer.twitter.com/en/docs/tweets/filter-realtime/guides/basic-stream-parameters}.
 #'
 #' @param locations numeric, a vector of longitude, latitude pairs (with the southwest corner
 #' coming first) specifying sets of bounding boxes to filter statuses by. 
 #' See the locations parameter information in the Streaming API documentation for details:
-#' \url{http://dev.twitter.com/docs/streaming-apis/parameters#locations}
+#' \url{https://developer.twitter.com/en/docs/tweets/filter-realtime/guides/basic-stream-parameters}
 #' 
 #' @param timeout numeric, maximum length of time (in seconds) of connection to stream.
 #' The connection will be automatically closed after this period. For example, setting
@@ -168,12 +168,13 @@ userStream <- function(file.name=NULL, with="followings", replies=NULL, track=NU
 		} 
 		if (!is.null(tweets) && is.numeric(tweets) && tweets>0){	
 			write.tweets <- function(x){	
-				if (i>=tweets){break}	
-				# writes output of stream to a file	
-				if (nchar(x)>0) {	
-					i <<- i + 1	
-					writeLines(x, conn, sep="")	
-				}	
+			  while (i<=tweets){
+			    # writes output of stream to a file	
+			    if (nchar(x)>0) {	
+			      i <<- i + 1	
+			      writeLines(x, conn, sep="")	
+			    }	
+			  }
 			}
 		}  
  	}

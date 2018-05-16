@@ -18,23 +18,23 @@ authenticated user follow. If set to "user", will only stream messages from auth
 user.
 
 See the \code{with} parameter information in the Streaming API documentation for details:
-\url{https://dev.twitter.com/docs/streaming-apis/parameters#with}}
+\url{https://developer.twitter.com/en/docs/tweets/filter-realtime/guides/basic-stream-parameters}}
 
 \item{replies}{string, default is \code{NULL}, which will only stream replies sent by
 a different user if the authenticated user follows the receiver of the reply. All replies
 to users that the authenticated user follows will be included if this argument is set to "all".
 
 See the \code{replies} parameter information in the Streaming API documentation for details:
-\url{https://dev.twitter.com/docs/streaming-apis/parameters#replies}}
+\url{https://developer.twitter.com/en/docs/tweets/filter-realtime/guides/basic-stream-parameters}}
 
 \item{track}{string or string vector containing keywords to track.
 See the track parameter information in the Streaming API documentation for details:
-\url{http://dev.twitter.com/docs/streaming-apis/parameters#track}.}
+\url{https://developer.twitter.com/en/docs/tweets/filter-realtime/guides/basic-stream-parameters}.}
 
 \item{locations}{numeric, a vector of longitude, latitude pairs (with the southwest corner
 coming first) specifying sets of bounding boxes to filter statuses by. 
 See the locations parameter information in the Streaming API documentation for details:
-\url{http://dev.twitter.com/docs/streaming-apis/parameters#locations}}
+\url{https://developer.twitter.com/en/docs/tweets/filter-realtime/guides/basic-stream-parameters}}
 
 \item{timeout}{numeric, maximum length of time (in seconds) of connection to stream.
 The connection will be automatically closed after this period. For example, setting
