@@ -27,3 +27,5 @@
    - fixed broken URLs in docs
 2018-05-17 - version 0.4.2:
    - fixed issue with reverse dependencies
+2018-06-27 - version 0.4.3:
+  - adds support for 280-character tweets in parseTweets()

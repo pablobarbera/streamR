@@ -6,7 +6,8 @@
 #'
 #' @description
 #' This function parses tweets downloaded using \code{filterStream}, 
-#' \code{sampleStream} or \code{userStream} and returns a data frame.
+#' \code{sampleStream} or \code{userStream} and returns a data frame. If tweet contains
+#' 280-character text it will return the complete text and not only 140 characters.
 #'
 #' @author
 #' Pablo Barbera \email{pablo.barbera@@nyu.edu}
@@ -21,7 +22,8 @@
 #' the number of tweets that have been parsed.
 #' 
 #' @param legacy logical, default is \code{FALSE}. Read tweets using old method (reading lines into memory and parsing
-#' line by line). Try using \code{legacy=TRUE} if getting errors with default options.
+#' line by line). Try using \code{legacy=TRUE} if getting errors with default options. Note that legacy mode will
+#' only return up to 140 characters per tweet.
 #'
 #' @details
 #' \code{parseTweets} parses tweets downloaded using the \code{\link{filterStream}},
@@ -84,18 +86,32 @@ parseTweets <- function(tweets, simplify=FALSE, verbose=TRUE, legacy=FALSE){
   if (!legacy){
     results <- stream_in(tweets)
     
+    # adding RT count from embedded RT or if not available, from top-level tweet
     retweet_count <- rep(NA, length(results$text))
     if (!is.null(results$retweeted_status.retweet_count)){
       retweet_count <- ifelse(!is.na(results$retweeted_status.retweet_count),
                               results$retweeted_status.retweet_count, results$retweet_count)
     }                         
-    
+    # same for favorite counts
     favorite_count <- rep(NA, length(results$text))
     if (!is.null(results$retweeted_status.favorite_count)){
       favorite_count <- ifelse(!is.na(results$retweeted_status.favorite_count),
               results$retweeted_status.favorite_count, results$favorite_count)
     }      
     
+    # extracting the full text when tweet is >140 characters
+    text <- ifelse(
+      !is.na(results$extended_tweet.full_text),
+        ifelse(!is.na(results$retweeted_status.extended_tweet.full_text),
+               # full text from RT
+               paste0('RT @', results$retweeted_status.user.screen_name, ':', 
+                      results$retweeted_status.extended_tweet.full_text),
+               # 140+ text from original tweet
+               results$extended_tweet.full_text),
+               # <140 text from original tweet
+              results$text
+      )
+  
     df <- data.frame(
       text = results$text,
       retweet_count = retweet_count,
@@ -177,6 +193,9 @@ parseTweets <- function(tweets, simplify=FALSE, verbose=TRUE, legacy=FALSE){
         df$url <- results$entities.urls.0.url
       } 
     }
+    
+    # removing empty rows
+    df <- df[!is.na(df$id_str),]
 
   }
   

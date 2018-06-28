@@ -17,11 +17,13 @@ fields (i.e., no geographic information or url entities).}
 the number of tweets that have been parsed.}
 
 \item{legacy}{logical, default is \code{FALSE}. Read tweets using old method (reading lines into memory and parsing
-line by line). Try using \code{legacy=TRUE} if getting errors with default options.}
+line by line). Try using \code{legacy=TRUE} if getting errors with default options. Note that legacy mode will
+only return up to 140 characters per tweet.}
 }
 \description{
 This function parses tweets downloaded using \code{filterStream}, 
-\code{sampleStream} or \code{userStream} and returns a data frame.
+\code{sampleStream} or \code{userStream} and returns a data frame. If tweet contains
+280-character text it will return the complete text and not only 140 characters.
 }
 \details{
 \code{parseTweets} parses tweets downloaded using the \code{\link{filterStream}},
