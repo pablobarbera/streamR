@@ -100,20 +100,31 @@ parseTweets <- function(tweets, simplify=FALSE, verbose=TRUE, legacy=FALSE){
     }      
     
     # extracting the full text when tweet is >140 characters
-    text <- ifelse(
-      !is.na(results$extended_tweet.full_text),
-        ifelse(!is.na(results$retweeted_status.extended_tweet.full_text),
-               # full text from RT
-               paste0('RT @', results$retweeted_status.user.screen_name, ':', 
-                      results$retweeted_status.extended_tweet.full_text),
-               # 140+ text from original tweet
-               results$extended_tweet.full_text),
-               # <140 text from original tweet
-              results$text
-      )
-  
+    # 1) tweets from REST API with tweet_mode = 'extended'
+    error <- tryCatch(text <- results$full_text, error=function(e) e)
+    # 2) tweets from Streaming API that included 'extended_tweet' field
+    if (inherits(error, 'error')){
+      if ('extended_tweet' %in% names(results) == TRUE){
+        text <- ifelse(
+          !is.na(results$extended_tweet.full_text),
+          ifelse(!is.na(results$retweeted_status.extended_tweet.full_text),
+                 # full text from RT
+                 paste0('RT @', results$retweeted_status.user.screen_name, ':', 
+                        results$retweeted_status.extended_tweet.full_text),
+                 # 140+ text from original tweet
+                 results$extended_tweet.full_text),
+          # <140 text from original tweet
+          results$text
+        )
+      }
+      # 3) tweets from Streaming API that do not include 'extended_tweet' field
+      if ('extended_tweet' %in% names(results) == FALSE){
+        text <- results$text
+      }
+    }
+
     df <- data.frame(
-      text = results$text,
+      text = text,
       retweet_count = retweet_count,
       favorite_count = favorite_count,
       favorited = results$favorited,

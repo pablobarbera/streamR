@@ -29,3 +29,5 @@
    - fixed issue with reverse dependencies
 2018-06-27 - version 0.4.3:
   - adds support for 280-character tweets in parseTweets()
+2018-07-01 - version 0.4.4:
+  - fixes parseTweets error when reading tweets from REST API
