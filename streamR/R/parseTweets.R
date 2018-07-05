@@ -103,7 +103,7 @@ parseTweets <- function(tweets, simplify=FALSE, verbose=TRUE, legacy=FALSE){
     # 1) tweets from REST API with tweet_mode = 'extended'
     error <- tryCatch(text <- results$full_text, error=function(e) e)
     # 2) tweets from Streaming API that included 'extended_tweet' field
-    if (inherits(error, 'error')){
+    if (inherits(error, 'error') || is.null(error)){
       if ('extended_tweet' %in% names(results) == TRUE){
         text <- ifelse(
           !is.na(results$extended_tweet.full_text),
