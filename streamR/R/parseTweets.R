@@ -87,14 +87,14 @@ parseTweets <- function(tweets, simplify=FALSE, verbose=TRUE, legacy=FALSE){
     results <- stream_in(tweets)
     
     # adding RT count from embedded RT or if not available, from top-level tweet
-    retweet_count <- rep(NA, length(results$text))
-    if (!is.null(results$retweeted_status.retweet_count)){
+    retweet_count <- rep(NA, nrow(results))
+    if (!is.null(results$retweeted_status.retweet_count) || is.null(results$retweet_count)){
       retweet_count <- ifelse(!is.na(results$retweeted_status.retweet_count),
                               results$retweeted_status.retweet_count, results$retweet_count)
     }                         
     # same for favorite counts
-    favorite_count <- rep(NA, length(results$text))
-    if (!is.null(results$retweeted_status.favorite_count)){
+    favorite_count <- rep(NA, nrow(results))
+    if (!is.null(results$retweeted_status.favorite_count) || is.null(results$favorite_count)){
       favorite_count <- ifelse(!is.na(results$retweeted_status.favorite_count),
               results$retweeted_status.favorite_count, results$favorite_count)
     }      
