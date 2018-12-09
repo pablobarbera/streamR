@@ -88,37 +88,48 @@ parseTweets <- function(tweets, simplify=FALSE, verbose=TRUE, legacy=FALSE){
     
     # adding RT count from embedded RT or if not available, from top-level tweet
     retweet_count <- rep(NA, nrow(results))
-    if (!is.null(results$retweeted_status.retweet_count) || is.null(results$retweet_count)){
+    # adding RT count from top-level tweet
+    if (!is.null(results$retweet_count)){
+      retweet_count <- results$retweet_count
+    }
+    # replacing with RT count from embedded RT when available
+    if (!is.null(results$retweeted_status.retweet_count)){
       retweet_count <- ifelse(!is.na(results$retweeted_status.retweet_count),
                               results$retweeted_status.retweet_count, results$retweet_count)
-    }                         
+    }
     # same for favorite counts
     favorite_count <- rep(NA, nrow(results))
-    if (!is.null(results$retweeted_status.favorite_count) || is.null(results$favorite_count)){
+    if (!is.null(results$favorite_count)){
+      favorite_count <- results$favorite_count
+    }
+    # replacing with RT count from embedded RT when available
+    if (!is.null(results$retweeted_status.favorite_count)){
       favorite_count <- ifelse(!is.na(results$retweeted_status.favorite_count),
-              results$retweeted_status.favorite_count, results$favorite_count)
-    }      
-    
+                              results$retweeted_status.favorite_count, results$favorite_count)
+    }
+
     # extracting the full text when tweet is >140 characters
     # 1) tweets from REST API with tweet_mode = 'extended'
     error <- tryCatch(text <- results$full_text, error=function(e) e)
     # 2) tweets from Streaming API that included 'extended_tweet' field
     if (inherits(error, 'error') || is.null(error)){
-      if ('extended_tweet' %in% names(results) == TRUE){
-        text <- ifelse(
-          !is.na(results$extended_tweet.full_text),
-          ifelse(!is.na(results$retweeted_status.extended_tweet.full_text),
-                 # full text from RT
+      if (any(grepl('extended_tweet', names(results)))){
+        text <- results$extended_tweet.full_text
+        # replacing with text if missing
+        text <- ifelse(!is.na(text), text, results$text)
+
+        # checking if there are any RTs
+        if (!is.null(results$retweeted_status.extended_tweet.full_text)){
+          text <- ifelse(!is.na(results$retweeted_status.extended_tweet.full_text),
+                # full text from RT
                  paste0('RT @', results$retweeted_status.user.screen_name, ':', 
                         results$retweeted_status.extended_tweet.full_text),
                  # 140+ text from original tweet
-                 results$extended_tweet.full_text),
-          # <140 text from original tweet
-          results$text
-        )
+                 text)
+        }
       }
       # 3) tweets from Streaming API that do not include 'extended_tweet' field
-      if ('extended_tweet' %in% names(results) == FALSE){
+      if (!any(grepl('extended_tweet', names(results)))){
         text <- results$text
       }
     }

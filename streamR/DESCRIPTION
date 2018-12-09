@@ -2,7 +2,7 @@ Package: streamR
 Title: Access to Twitter Streaming API via R
 Description: Functions to access Twitter's filter, sample, and user streams, and to
     parse the output into data frames.
-Version: 0.4.4
+Version: 0.4.5
 Author: Pablo Barbera <pablo.barbera@nyu.edu>
 Maintainer: Pablo Barbera <pablo.barbera@nyu.edu>
 Depends:

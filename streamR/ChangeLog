@@ -31,3 +31,5 @@
   - adds support for 280-character tweets in parseTweets()
 2018-07-01 - version 0.4.4:
   - fixes parseTweets error when reading tweets from REST API
+2018-12-09 - version 0.4.5:
+  - additional fixes for tweets with 140+ characters
