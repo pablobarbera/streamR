@@ -111,6 +111,15 @@ parseTweets <- function(tweets, simplify=FALSE, verbose=TRUE, legacy=FALSE){
     # extracting the full text when tweet is >140 characters
     # 1) tweets from REST API with tweet_mode = 'extended'
     error <- tryCatch(text <- results$full_text, error=function(e) e)
+       # replacing text of RTs
+       if (length(text)>0){
+         text <- ifelse(!is.na(results$retweeted_status.full_text),
+                # full text from RT
+                 paste0('RT @', results$retweeted_status.user.screen_name, ':', 
+                        results$retweeted_status.full_text),
+                 # 140+ text from original tweet
+                 text)
+         }             
     # 2) tweets from Streaming API that included 'extended_tweet' field
     if (inherits(error, 'error') || is.null(error)){
       if (any(grepl('extended_tweet', names(results)))){
